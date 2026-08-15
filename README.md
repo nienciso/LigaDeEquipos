@@ -12,6 +12,6 @@ Se utilizó LocalStorage para mantener los equipos, resultados, fecha actual y e
 
 La interfaz fue desarrollada con HTML5, CSS3 y Bootstrap, mientras que JavaScript se encarga de la generación dinámica del torneo, manipulación del DOM, gestión de resultados, cálculo de posiciones y persistencia de datos.
 
-Tecnologías utilizadas: HTML5 - CSS3 - Bootstrap - JavaScript - LocalStorage
+Tecnologías utilizadas: HTML5 - CSS - Bootstrap - JavaScript 
 
 El proyecto aplica conceptos como manipulación del DOM, arrays, objetos, funciones, eventos, ordenamiento de datos, almacenamiento local y generación dinámica de contenido.
