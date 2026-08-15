@@ -10,7 +10,7 @@ Los resultados se registran seleccionando victoria, empate o derrota. A partir d
 
 Se utilizó LocalStorage para mantener los equipos, resultados, fecha actual y estado del torneo almacenados en el navegador, evitando la necesidad de implementar una base de datos para esta versión.
 
-La interfaz fue desarrollada con HTML5, CSS3 y Bootstrap, mientras que JavaScript se encarga de la generación dinámica del torneo, manipulación del DOM, gestión de resultados, cálculo de posiciones y persistencia de datos.
+La interfaz fue desarrollada con HTML5, CSS y Bootstrap, mientras que JavaScript se encarga de la generación dinámica del torneo, manipulación del DOM, gestión de resultados, cálculo de posiciones y persistencia de datos.
 
 Tecnologías utilizadas: HTML5 - CSS - Bootstrap - JavaScript 
 
