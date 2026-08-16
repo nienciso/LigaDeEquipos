@@ -1,31 +1,40 @@
 let equipos =
-    JSON.parse(
-        localStorage.getItem("equiposLiga")
-    ) || [];
+    JSON.parse(localStorage.getItem("equiposLiga")) || [];
 
 let torneoGenerado =
-    JSON.parse(
-        localStorage.getItem("torneoGenerado")
-    ) || false;
+    JSON.parse(localStorage.getItem("torneoGenerado")) || false;
 
-let resultadosPartidos =
-    JSON.parse(
-        localStorage.getItem("resultadosLiga")
-    ) || {};
+let modalidad =
+    localStorage.getItem("modalidadLiga") || "liga";
+
+let resultados =
+    JSON.parse(localStorage.getItem("resultadosLiga")) || {};
 
 let fechaActual =
-    Number(
-        localStorage.getItem("fechaActualLiga")
-    ) || 0;
+    Number(localStorage.getItem("fechaActualLiga")) || 0;
 
 let fixture = [];
 
+let grupoA = [];
+let grupoB = [];
+
+let fixtureA = [];
+let fixtureB = [];
+
+let tablaActualA = [];
+let tablaActualB = [];
 
 const seccionConfiguracion =
     document.getElementById("seccionConfiguracion");
 
 const seccionTorneo =
     document.getElementById("seccionTorneo");
+
+const modoLiga =
+    document.getElementById("modoLiga");
+
+const modoCopa =
+    document.getElementById("modoCopa");
 
 const nombreEquipo =
     document.getElementById("nombreEquipo");
@@ -45,6 +54,8 @@ const listaEquipos =
 const mensajeEquipo =
     document.getElementById("mensajeEquipo");
 
+const modalidadTorneo =
+    document.getElementById("modalidadTorneo");
 
 function guardarEquipos() {
 
@@ -54,13 +65,33 @@ function guardarEquipos() {
     );
 }
 
+function guardarResultados() {
+
+    localStorage.setItem(
+        "resultadosLiga",
+        JSON.stringify(resultados)
+    );
+}
+
+function mostrarMensaje(texto, tipo) {
+
+    mensajeEquipo.innerHTML = `
+        <div class="alert alert-${tipo} py-2 mb-0">
+            ${texto}
+        </div>
+    `;
+
+    setTimeout(() => {
+
+        mensajeEquipo.innerHTML = "";
+
+    }, 2500);
+}
 
 function agregarEquipo() {
 
     const nombre =
         nombreEquipo.value.trim();
-
-    mensajeEquipo.innerHTML = "";
 
     if (nombre === "") {
 
@@ -105,24 +136,14 @@ function agregarEquipo() {
     nombreEquipo.focus();
 }
 
+function eliminarEquipo(indice) {
 
-function mostrarMensaje(texto, tipo) {
+    equipos.splice(indice, 1);
 
-    mensajeEquipo.innerHTML = `
+    guardarEquipos();
 
-        <div class="alert alert-${tipo} py-2 mb-0">
-            ${texto}
-        </div>
-
-    `;
-
-    setTimeout(() => {
-
-        mensajeEquipo.innerHTML = "";
-
-    }, 2500);
+    mostrarEquiposConfiguracion();
 }
-
 
 function mostrarEquiposConfiguracion() {
 
@@ -136,73 +157,95 @@ function mostrarEquiposConfiguracion() {
     if (equipos.length === 0) {
 
         listaEquipos.innerHTML = `
-
             <p class="text-muted mb-0">
                 Todavía no agregaste equipos.
             </p>
-
         `;
 
     } else {
 
-        equipos.forEach(
-            (equipo, indice) => {
+        equipos.forEach((equipo, indice) => {
 
-                const item =
-                    document.createElement("div");
+            const item =
+                document.createElement("div");
 
-                item.className =
-                    "d-flex justify-content-between align-items-center border-bottom py-3";
+            item.className =
+                "d-flex justify-content-between align-items-center border-bottom py-3";
 
-                item.innerHTML = `
+            item.innerHTML = `
+                <div>
+                    <strong>
+                        ${indice + 1}.
+                    </strong>
 
-                    <div>
+                    ${equipo}
+                </div>
 
-                        <strong>
-                            ${indice + 1}.
-                        </strong>
+                <button
+                    class="btn btn-outline-danger btn-sm"
+                    onclick="eliminarEquipo(${indice})"
+                >
+                    Eliminar
+                </button>
+            `;
 
-                        ${equipo}
-
-                    </div>
-
-                    <button
-                        class="btn btn-outline-danger btn-sm"
-                        onclick="eliminarEquipo(${indice})"
-                    >
-                        Eliminar
-                    </button>
-
-                `;
-
-                listaEquipos.appendChild(item);
-            }
-        );
+            listaEquipos.appendChild(item);
+        });
     }
 
-    btnGenerarTorneo.disabled =
-        equipos.length < 2;
+    actualizarRequisito();
 }
 
+function actualizarRequisito() {
 
-function eliminarEquipo(indice) {
+    const texto =
+        document.getElementById("textoRequisito");
 
-    equipos.splice(
-        indice,
-        1
-    );
+    if (modalidadTorneo.value === "liga") {
 
-    guardarEquipos();
+        btnGenerarTorneo.disabled =
+            equipos.length < 2;
 
-    mostrarEquiposConfiguracion();
+        texto.textContent =
+            "Necesitás al menos 2 equipos.";
+
+    } else {
+
+        const valido =
+            equipos.length >= 4 &&
+            equipos.length % 2 === 0;
+
+        btnGenerarTorneo.disabled =
+            !valido;
+
+        texto.textContent =
+            "Para Grupos + Eliminatorias necesitás al menos 4 equipos y una cantidad par.";
+    }
 }
 
+function actualizarAyudaModalidad() {
+
+    const ayuda =
+        document.getElementById("ayudaModalidad");
+
+    if (modalidadTorneo.value === "liga") {
+
+        ayuda.textContent =
+            "Todos los equipos juegan contra todos.";
+
+    } else {
+
+        ayuda.textContent =
+            "Los equipos se dividen en Grupo A y Grupo B. Clasifican los dos mejores de cada grupo.";
+    }
+
+    actualizarRequisito();
+}
 
 btnAgregarEquipo.addEventListener(
     "click",
     agregarEquipo
 );
-
 
 nombreEquipo.addEventListener(
     "keydown",
@@ -215,21 +258,42 @@ nombreEquipo.addEventListener(
     }
 );
 
+modalidadTorneo.addEventListener(
+    "change",
+    actualizarAyudaModalidad
+);
 
 btnGenerarTorneo.addEventListener(
     "click",
     function () {
 
-        if (equipos.length < 2) {
+        modalidad =
+            modalidadTorneo.value;
+
+        if (
+            modalidad === "liga" &&
+            equipos.length < 2
+        ) {
+
+            return;
+        }
+
+        if (
+            modalidad === "copa" &&
+            (
+                equipos.length < 4 ||
+                equipos.length % 2 !== 0
+            )
+        ) {
 
             return;
         }
 
         torneoGenerado = true;
 
-        fechaActual = 0;
+        resultados = {};
 
-        resultadosPartidos = {};
+        fechaActual = 0;
 
         localStorage.setItem(
             "torneoGenerado",
@@ -237,8 +301,8 @@ btnGenerarTorneo.addEventListener(
         );
 
         localStorage.setItem(
-            "fechaActualLiga",
-            "0"
+            "modalidadLiga",
+            modalidad
         );
 
         localStorage.setItem(
@@ -246,10 +310,14 @@ btnGenerarTorneo.addEventListener(
             JSON.stringify({})
         );
 
+        localStorage.setItem(
+            "fechaActualLiga",
+            "0"
+        );
+
         iniciarTorneo();
     }
 );
-
 
 function generarFixture(listaEquipos) {
 
@@ -260,9 +328,7 @@ function generarFixture(listaEquipos) {
         equiposFixture.length % 2 !== 0
     ) {
 
-        equiposFixture.push(
-            "LIBRE"
-        );
+        equiposFixture.push("LIBRE");
     }
 
     const cantidad =
@@ -299,50 +365,35 @@ function generarFixture(listaEquipos) {
                 rotacion[partido];
 
             const equipoB =
-                rotacion[
-                    cantidad - 1 - partido
-                ];
+                rotacion[cantidad - 1 - partido];
 
-            if (
-                equipoA === "LIBRE"
-            ) {
+            if (equipoA === "LIBRE") {
 
                 libre = equipoB;
 
                 continue;
             }
 
-            if (
-                equipoB === "LIBRE"
-            ) {
+            if (equipoB === "LIBRE") {
 
                 libre = equipoA;
 
                 continue;
             }
 
-            if (
-                fecha % 2 === 0
-            ) {
+            partidosFecha.push({
 
-                partidosFecha.push({
+                local:
+                    fecha % 2 === 0
+                        ? equipoA
+                        : equipoB,
 
-                    local: equipoA,
+                visitante:
+                    fecha % 2 === 0
+                        ? equipoB
+                        : equipoA
 
-                    visitante: equipoB
-
-                });
-
-            } else {
-
-                partidosFecha.push({
-
-                    local: equipoB,
-
-                    visitante: equipoA
-
-                });
-            }
+            });
         }
 
         fixtureGenerado.push({
@@ -372,13 +423,552 @@ function generarFixture(listaEquipos) {
     return fixtureGenerado;
 }
 
+function generarPartidosGrupo(lista) {
+
+    const partidos = [];
+
+    for (
+        let i = 0;
+        i < lista.length;
+        i++
+    ) {
+
+        for (
+            let j = i + 1;
+            j < lista.length;
+            j++
+        ) {
+
+            partidos.push({
+
+                local:
+                    lista[i],
+
+                visitante:
+                    lista[j]
+
+            });
+        }
+    }
+
+    return partidos;
+}
+
+function dividirGrupos() {
+
+    grupoA = [];
+
+    grupoB = [];
+
+    equipos.forEach((equipo, indice) => {
+
+        if (indice % 2 === 0) {
+
+            grupoA.push(equipo);
+
+        } else {
+
+            grupoB.push(equipo);
+        }
+    });
+
+    fixtureA =
+        generarPartidosGrupo(grupoA);
+
+    fixtureB =
+        generarPartidosGrupo(grupoB);
+}
+
+function crearResultadoVacio() {
+
+    return {
+
+        sets: [
+
+            {
+                local: "",
+                visitante: ""
+            },
+
+            {
+                local: "",
+                visitante: ""
+            },
+
+            {
+                local: "",
+                visitante: ""
+            }
+
+        ]
+
+    };
+}
+
+function normalizarResultado(resultado) {
+
+    if (
+        !resultado ||
+        typeof resultado !== "object" ||
+        !Array.isArray(resultado.sets)
+    ) {
+
+        return crearResultadoVacio();
+    }
+
+    return {
+
+        sets: [0, 1, 2].map(indice => ({
+
+            local:
+                resultado.sets[indice]?.local ?? "",
+
+            visitante:
+                resultado.sets[indice]?.visitante ?? ""
+
+        }))
+
+    };
+}
+
+function setCompleto(local, visitante) {
+
+    if (
+        local === "" ||
+        visitante === ""
+    ) {
+
+        return false;
+    }
+
+    const a =
+        Number(local);
+
+    const b =
+        Number(visitante);
+
+    if (
+        !Number.isInteger(a) ||
+        !Number.isInteger(b) ||
+        a < 0 ||
+        b < 0 ||
+        a === b
+    ) {
+
+        return false;
+    }
+
+    const ganador =
+        Math.max(a, b);
+
+    const perdedor =
+        Math.min(a, b);
+
+    if (
+        ganador === 15 &&
+        perdedor <= 13
+    ) {
+
+        return true;
+    }
+
+    if (
+        ganador === 16 &&
+        perdedor === 14
+    ) {
+
+        return true;
+    }
+
+    if (
+        ganador === 17 &&
+        (
+            perdedor === 15 ||
+            perdedor === 16
+        )
+    ) {
+
+        return true;
+    }
+
+    return false;
+}
+
+function calcularResultadoPartido(resultado) {
+
+    const datos =
+        normalizarResultado(resultado);
+
+    let setsLocal = 0;
+
+    let setsVisitante = 0;
+
+    let golesLocal = 0;
+
+    let golesVisitante = 0;
+
+    let setsValidos = 0;
+
+    datos.sets.forEach(set => {
+
+        if (
+            !setCompleto(
+                set.local,
+                set.visitante
+            )
+        ) {
+
+            return;
+        }
+
+        const local =
+            Number(set.local);
+
+        const visitante =
+            Number(set.visitante);
+
+        golesLocal +=
+            local;
+
+        golesVisitante +=
+            visitante;
+
+        setsValidos++;
+
+        if (local > visitante) {
+
+            setsLocal++;
+
+        } else {
+
+            setsVisitante++;
+        }
+    });
+
+    const partidoCompleto =
+        setsValidos === 3;
+
+    let puntosLocal = 0;
+
+    let puntosVisitante = 0;
+
+    if (partidoCompleto) {
+
+        if (setsLocal > setsVisitante) {
+
+            puntosLocal = 3;
+
+        } else if (
+            setsVisitante > setsLocal
+        ) {
+
+            puntosVisitante = 3;
+
+        } else {
+
+            puntosLocal = 1;
+
+            puntosVisitante = 1;
+        }
+    }
+
+    return {
+
+        partidoCompleto,
+
+        setsLocal,
+
+        setsVisitante,
+
+        golesLocal,
+
+        golesVisitante,
+
+        puntosLocal,
+
+        puntosVisitante
+
+    };
+}
+
+function obtenerGanador(partido, resultado) {
+
+    const resumen =
+        calcularResultadoPartido(resultado);
+
+    if (!resumen.partidoCompleto) {
+
+        return null;
+    }
+
+    if (
+        resumen.setsLocal >
+        resumen.setsVisitante
+    ) {
+
+        return partido.local;
+    }
+
+    if (
+        resumen.setsVisitante >
+        resumen.setsLocal
+    ) {
+
+        return partido.visitante;
+    }
+
+    if (
+        resumen.golesLocal >
+        resumen.golesVisitante
+    ) {
+
+        return partido.local;
+    }
+
+    if (
+        resumen.golesVisitante >
+        resumen.golesLocal
+    ) {
+
+        return partido.visitante;
+    }
+
+    return null;
+}
+
+function crearTarjetaPartido(
+    partido,
+    idPartido,
+    tipo = "normal"
+) {
+
+    const resultado =
+        normalizarResultado(
+            resultados[idPartido]
+        );
+
+    const resumen =
+        calcularResultadoPartido(
+            resultado
+        );
+
+    const filasSets =
+        resultado.sets.map(
+
+            (set, indiceSet) => `
+
+                <div
+                    class="row g-2 align-items-center mb-2"
+                >
+
+                    <div
+                        class="col-2 fw-bold"
+                    >
+                        Set ${indiceSet + 1}
+                    </div>
+
+                    <div class="col-5">
+
+                        <input
+                            type="number"
+                            min="0"
+                            max="17"
+                            class="form-control text-center gol-set"
+                            data-id="${idPartido}"
+                            data-set="${indiceSet}"
+                            data-equipo="local"
+                            value="${set.local}"
+                            placeholder="${partido.local}"
+                        >
+
+                    </div>
+
+                    <div class="col-5">
+
+                        <input
+                            type="number"
+                            min="0"
+                            max="17"
+                            class="form-control text-center gol-set"
+                            data-id="${idPartido}"
+                            data-set="${indiceSet}"
+                            data-equipo="visitante"
+                            value="${set.visitante}"
+                            placeholder="${partido.visitante}"
+                        >
+
+                    </div>
+
+                </div>
+
+            `
+
+        ).join("");
+
+    let tituloExtra = "";
+
+    if (tipo === "semifinal") {
+
+        tituloExtra = `
+            <div class="badge bg-dark mb-3">
+                SEMIFINAL
+            </div>
+        `;
+    }
+
+    if (tipo === "final") {
+
+        tituloExtra = `
+            <div class="badge bg-warning text-dark mb-3">
+                FINAL
+            </div>
+        `;
+    }
+
+    const columna =
+        document.createElement("div");
+
+    columna.className =
+        tipo === "final"
+            ? "col-lg-8"
+            : "col-lg-6";
+
+    columna.innerHTML = `
+
+        <div class="partido">
+
+            ${tituloExtra}
+
+            <div class="estado-partido">
+
+                ${
+                    resumen.partidoCompleto
+                        ? "● RESULTADO CARGADO"
+                        : "○ PENDIENTE"
+                }
+
+            </div>
+
+            <div class="mb-3">
+
+                <h5 class="mb-1">
+                    ${partido.local}
+                </h5>
+
+                <span class="text-muted">
+                    vs
+                </span>
+
+                <h5 class="mt-1">
+                    ${partido.visitante}
+                </h5>
+
+            </div>
+
+            <div class="mb-2 fw-bold">
+                Goles por set
+            </div>
+
+            ${filasSets}
+
+            <div class="mt-3 small">
+
+                <strong>
+                    Sets:
+                </strong>
+
+                ${resumen.setsLocal}
+                -
+                ${resumen.setsVisitante}
+
+                &nbsp;·&nbsp;
+
+                <strong>
+                    Goles:
+                </strong>
+
+                ${resumen.golesLocal}
+                -
+                ${resumen.golesVisitante}
+
+            </div>
+
+            <div class="mt-2 text-muted small">
+
+                Victoria = 3 puntos ·
+                Empate = 1 punto cada uno ·
+                Derrota = 0 puntos
+
+            </div>
+
+        </div>
+
+    `;
+
+    return columna;
+}
+
+function agregarEventosResultados() {
+
+    const inputs =
+        document.querySelectorAll(
+            ".gol-set"
+        );
+
+    inputs.forEach(input => {
+
+        input.addEventListener(
+            "change",
+            function () {
+
+                const id =
+                    this.dataset.id;
+
+                const indiceSet =
+                    Number(this.dataset.set);
+
+                const equipo =
+                    this.dataset.equipo;
+
+                if (!resultados[id]) {
+
+                    resultados[id] =
+                        crearResultadoVacio();
+                }
+
+                resultados[id] =
+                    normalizarResultado(
+                        resultados[id]
+                    );
+
+                resultados[id]
+                    .sets[indiceSet][equipo] =
+
+                    this.value === ""
+                        ? ""
+                        : Number(this.value);
+
+                guardarResultados();
+
+                if (modalidad === "liga") {
+
+                    calcularTablaLiga();
+
+                    actualizarPartidosCargadosLiga();
+
+                    mostrarFecha();
+
+                } else {
+
+                    mostrarCopa();
+                }
+
+            }
+        );
+    });
+}
 
 function iniciarTorneo() {
-
-    fixture =
-        generarFixture(
-            equipos
-        );
 
     seccionConfiguracion.classList.add(
         "d-none"
@@ -392,27 +982,43 @@ function iniciarTorneo() {
         "d-none"
     );
 
-    actualizarEstadisticas();
-
-    mostrarFecha();
-
-    calcularTabla();
-
-    actualizarPartidosCargados();
-}
-
-
-function actualizarEstadisticas() {
-
     document.getElementById(
         "totalEquipos"
     ).textContent =
         equipos.length;
 
-    document.getElementById(
-        "totalFechas"
-    ).textContent =
-        fixture.length;
+    if (modalidad === "liga") {
+
+        modoLiga.classList.remove(
+            "d-none"
+        );
+
+        modoCopa.classList.add(
+            "d-none"
+        );
+
+        fixture =
+            generarFixture(equipos);
+
+        mostrarLiga();
+
+    } else {
+
+        modoLiga.classList.add(
+            "d-none"
+        );
+
+        modoCopa.classList.remove(
+            "d-none"
+        );
+
+        dividirGrupos();
+
+        mostrarCopa();
+    }
+}
+
+function mostrarLiga() {
 
     let totalPartidos = 0;
 
@@ -423,11 +1029,26 @@ function actualizarEstadisticas() {
     });
 
     document.getElementById(
+        "totalFechas"
+    ).textContent =
+        fixture.length;
+
+    document.getElementById(
+        "labelFechas"
+    ).textContent =
+        "Fechas";
+
+    document.getElementById(
         "totalPartidos"
     ).textContent =
         totalPartidos;
-}
 
+    mostrarFecha();
+
+    calcularTablaLiga();
+
+    actualizarPartidosCargadosLiga();
+}
 
 function mostrarFecha() {
 
@@ -451,9 +1072,7 @@ function mostrarFecha() {
     const datosFecha =
         fixture[fechaActual];
 
-    if (
-        datosFecha.libre
-    ) {
+    if (datosFecha.libre) {
 
         equipoLibre.classList.remove(
             "d-none"
@@ -477,129 +1096,18 @@ function mostrarFecha() {
     }
 
     datosFecha.partidos.forEach(
-
         (partido, indice) => {
 
-            const idPartido =
-                `${fechaActual}-${indice}`;
-
-            const resultado =
-                resultadosPartidos[
-                    idPartido
-                ] || "";
-
-            const cargado =
-                resultado !== "";
-
-            const columna =
-                document.createElement(
-                    "div"
-                );
-
-            columna.className =
-                "col-lg-6";
-
-            columna.innerHTML = `
-
-                <div class="partido">
-
-                    <div class="estado-partido">
-
-                        ${
-                            cargado
-                                ? "● RESULTADO CARGADO"
-                                : "○ PENDIENTE"
-                        }
-
-                    </div>
-
-                    <div class="mb-3">
-
-                        <h5 class="mb-1">
-                            ${partido.local}
-                        </h5>
-
-                        <span class="text-muted">
-                            vs
-                        </span>
-
-                        <h5 class="mt-1">
-                            ${partido.visitante}
-                        </h5>
-
-                    </div>
-
-                    <label
-                        class="form-label fw-bold"
-                    >
-                        Resultado
-                    </label>
-
-                    <select
-                        class="form-select resultado-partido"
-                        data-id="${idPartido}"
-                    >
-
-                        <option
-                            value=""
-                            ${
-                                resultado === ""
-                                    ? "selected"
-                                    : ""
-                            }
-                        >
-                            Seleccionar resultado
-                        </option>
-
-                        <option
-                            value="local"
-                            ${
-                                resultado === "local"
-                                    ? "selected"
-                                    : ""
-                            }
-                        >
-                            Gana ${partido.local}
-                        </option>
-
-                        <option
-                            value="empate"
-                            ${
-                                resultado === "empate"
-                                    ? "selected"
-                                    : ""
-                            }
-                        >
-                            Empate
-                        </option>
-
-                        <option
-                            value="visitante"
-                            ${
-                                resultado === "visitante"
-                                    ? "selected"
-                                    : ""
-                            }
-                        >
-                            Gana ${partido.visitante}
-                        </option>
-
-                    </select>
-
-                    <div class="mt-3 text-muted small">
-
-                        Victoria = 3 puntos ·
-                        Empate = 1 punto cada uno ·
-                        Derrota = 0 puntos
-
-                    </div>
-
-                </div>
-
-            `;
+            const id =
+                `L-${fechaActual}-${indice}`;
 
             contenedor.appendChild(
-                columna
+
+                crearTarjetaPartido(
+                    partido,
+                    id
+                )
+
             );
         }
     );
@@ -609,178 +1117,256 @@ function mostrarFecha() {
     actualizarBotonesFechas();
 }
 
-
-function agregarEventosResultados() {
-
-    const selects =
-        document.querySelectorAll(
-            ".resultado-partido"
-        );
-
-    selects.forEach(select => {
-
-        select.addEventListener(
-
-            "change",
-
-            function () {
-
-                const id =
-                    this.dataset.id;
-
-                const resultado =
-                    this.value;
-
-                if (
-                    resultado === ""
-                ) {
-
-                    delete resultadosPartidos[
-                        id
-                    ];
-
-                } else {
-
-                    resultadosPartidos[
-                        id
-                    ] = resultado;
-                }
-
-                guardarResultados();
-
-                calcularTabla();
-
-                actualizarPartidosCargados();
-
-                mostrarFecha();
-            }
-        );
-    });
-}
-
-
-function guardarResultados() {
-
-    localStorage.setItem(
-
-        "resultadosLiga",
-
-        JSON.stringify(
-            resultadosPartidos
-        )
-    );
-}
-
-
-function calcularTabla() {
+function calcularTablaLiga() {
 
     const tabla = {};
 
-    equipos.forEach(
-        equipo => {
+    equipos.forEach(equipo => {
 
-            tabla[equipo] = {
+        tabla[equipo] = {
 
-                equipo: equipo,
+            equipo: equipo,
 
-                puntos: 0
+            puntos: 0,
 
-            };
-        }
-    );
+            goles: 0
+
+        };
+    });
 
     fixture.forEach(
-
         (datosFecha, numeroFecha) => {
 
             datosFecha.partidos.forEach(
-
                 (partido, indice) => {
 
-                    const idPartido =
-                        `${numeroFecha}-${indice}`;
+                    const id =
+                        `L-${numeroFecha}-${indice}`;
 
                     const resultado =
-                        resultadosPartidos[
-                            idPartido
-                        ];
+                        resultados[id];
 
                     if (!resultado) {
 
                         return;
                     }
 
-                    if (
-                        resultado === "local"
-                    ) {
+                    const resumen =
+                        calcularResultadoPartido(
+                            resultado
+                        );
 
-                        tabla[
-                            partido.local
-                        ].puntos += 3;
+                    tabla[
+                        partido.local
+                    ].goles +=
+                        resumen.golesLocal;
 
-                    } else if (
-                        resultado === "visitante"
-                    ) {
+                    tabla[
+                        partido.visitante
+                    ].goles +=
+                        resumen.golesVisitante;
 
-                        tabla[
-                            partido.visitante
-                        ].puntos += 3;
+                    if (!resumen.partidoCompleto) {
 
-                    } else if (
-                        resultado === "empate"
-                    ) {
-
-                        tabla[
-                            partido.local
-                        ].puntos += 1;
-
-                        tabla[
-                            partido.visitante
-                        ].puntos += 1;
+                        return;
                     }
+
+                    tabla[
+                        partido.local
+                    ].puntos +=
+                        resumen.puntosLocal;
+
+                    tabla[
+                        partido.visitante
+                    ].puntos +=
+                        resumen.puntosVisitante;
+
                 }
             );
         }
     );
 
     const posiciones =
-        Object.values(
-            tabla
+        ordenarTabla(
+            Object.values(tabla)
         );
 
-    posiciones.sort(
-        (a, b) =>
-            b.puntos -
-            a.puntos
-    );
-
     mostrarTabla(
-        posiciones
+        posiciones,
+        document.getElementById(
+            "tablaPosiciones"
+        )
     );
 }
 
+function mostrarCopa() {
 
-function mostrarTabla(posiciones) {
-
-    const tbody =
-        document.getElementById(
-            "tablaPosiciones"
+    tablaActualA =
+        calcularTablaGrupo(
+            grupoA,
+            fixtureA,
+            "A"
         );
+
+    tablaActualB =
+        calcularTablaGrupo(
+            grupoB,
+            fixtureB,
+            "B"
+        );
+
+    mostrarTabla(
+
+        tablaActualA,
+
+        document.getElementById(
+            "tablaGrupoA"
+        )
+
+    );
+
+    mostrarTabla(
+
+        tablaActualB,
+
+        document.getElementById(
+            "tablaGrupoB"
+        )
+
+    );
+
+    mostrarPartidosGrupo(
+        fixtureA,
+        "A",
+        document.getElementById(
+            "partidosGrupoA"
+        )
+    );
+
+    mostrarPartidosGrupo(
+        fixtureB,
+        "B",
+        document.getElementById(
+            "partidosGrupoB"
+        )
+    );
+
+    actualizarCopa();
+
+    agregarEventosResultados();
+}
+
+function calcularTablaGrupo(
+    equiposGrupo,
+    partidos,
+    prefijo
+) {
+
+    const tabla = {};
+
+    equiposGrupo.forEach(equipo => {
+
+        tabla[equipo] = {
+
+            equipo: equipo,
+
+            puntos: 0,
+
+            goles: 0
+
+        };
+    });
+
+    partidos.forEach(
+        (partido, indice) => {
+
+            const id =
+                `${prefijo}-${indice}`;
+
+            const resultado =
+                resultados[id];
+
+            if (!resultado) {
+
+                return;
+            }
+
+            const resumen =
+                calcularResultadoPartido(
+                    resultado
+                );
+
+            tabla[
+                partido.local
+            ].goles +=
+                resumen.golesLocal;
+
+            tabla[
+                partido.visitante
+            ].goles +=
+                resumen.golesVisitante;
+
+            if (!resumen.partidoCompleto) {
+
+                return;
+            }
+
+            tabla[
+                partido.local
+            ].puntos +=
+                resumen.puntosLocal;
+
+            tabla[
+                partido.visitante
+            ].puntos +=
+                resumen.puntosVisitante;
+
+        }
+    );
+
+    return ordenarTabla(
+        Object.values(tabla)
+    );
+}
+
+function ordenarTabla(tabla) {
+
+    return tabla.sort(
+        (a, b) => {
+
+            if (
+                b.puntos !==
+                a.puntos
+            ) {
+
+                return (
+                    b.puntos -
+                    a.puntos
+                );
+            }
+
+            return (
+                b.goles -
+                a.goles
+            );
+        }
+    );
+}
+
+function mostrarTabla(
+    posiciones,
+    tbody
+) {
 
     tbody.innerHTML = "";
 
     posiciones.forEach(
-
         (equipo, indice) => {
 
             const fila =
-                document.createElement(
-                    "tr"
-                );
+                document.createElement("tr");
 
-            if (
-                indice === 0
-            ) {
+            if (indice < 2) {
 
                 fila.classList.add(
                     "primero"
@@ -790,11 +1376,9 @@ function mostrarTabla(posiciones) {
             fila.innerHTML = `
 
                 <td>
-
                     <div class="posicion">
                         ${indice + 1}
                     </div>
-
                 </td>
 
                 <td class="nombre-tabla">
@@ -805,33 +1389,467 @@ function mostrarTabla(posiciones) {
                     ${equipo.puntos}
                 </td>
 
+                <td>
+                    ${equipo.goles}
+                </td>
+
             `;
 
-            tbody.appendChild(
-                fila
+            tbody.appendChild(fila);
+        }
+    );
+}
+
+function mostrarPartidosGrupo(
+    partidos,
+    prefijo,
+    contenedor
+) {
+
+    contenedor.innerHTML = "";
+
+    partidos.forEach(
+        (partido, indice) => {
+
+            const id =
+                `${prefijo}-${indice}`;
+
+            contenedor.appendChild(
+
+                crearTarjetaPartido(
+                    partido,
+                    id
+                )
+
             );
         }
     );
 }
 
+function gruposCompletos() {
 
-function actualizarPartidosCargados() {
+    const completosA =
+        fixtureA.every(
+            (partido, indice) => {
+
+                const resultado =
+                    resultados[`A-${indice}`];
+
+                return (
+                    resultado &&
+                    calcularResultadoPartido(
+                        resultado
+                    ).partidoCompleto
+                );
+            }
+        );
+
+    const completosB =
+        fixtureB.every(
+            (partido, indice) => {
+
+                const resultado =
+                    resultados[`B-${indice}`];
+
+                return (
+                    resultado &&
+                    calcularResultadoPartido(
+                        resultado
+                    ).partidoCompleto
+                );
+            }
+        );
+
+    return completosA && completosB;
+}
+
+function actualizarCopa() {
+
+    const totalPartidosGrupos =
+        fixtureA.length +
+        fixtureB.length;
+
+    document.getElementById(
+        "totalFechas"
+    ).textContent =
+        "2";
+
+    document.getElementById(
+        "labelFechas"
+    ).textContent =
+        "Grupos";
+
+    document.getElementById(
+        "totalPartidos"
+    ).textContent =
+        totalPartidosGrupos + 3;
+
+    actualizarPartidosCargadosCopa();
+
+    if (!gruposCompletos()) {
+
+        document.getElementById(
+            "mensajeClasificados"
+        ).classList.remove(
+            "d-none"
+        );
+
+        document.getElementById(
+            "clasificados"
+        ).innerHTML = "";
+
+        document.getElementById(
+            "seccionSemifinales"
+        ).classList.add(
+            "d-none"
+        );
+
+        document.getElementById(
+            "seccionFinal"
+        ).classList.add(
+            "d-none"
+        );
+
+        document.getElementById(
+            "seccionCampeon"
+        ).classList.add(
+            "d-none"
+        );
+
+        return;
+    }
+
+    mostrarClasificados();
+
+    mostrarSemifinales();
+}
+
+function mostrarClasificados() {
+
+    document.getElementById(
+        "mensajeClasificados"
+    ).classList.add(
+        "d-none"
+    );
+
+    const clasificados =
+        document.getElementById(
+            "clasificados"
+        );
+
+    clasificados.innerHTML = `
+
+        <div class="col-md-3">
+
+            <div class="card border-0 shadow-sm text-center">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        1° GRUPO A
+                    </small>
+
+                    <h5 class="mt-2">
+                        ${tablaActualA[0].equipo}
+                    </h5>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="card border-0 shadow-sm text-center">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        2° GRUPO A
+                    </small>
+
+                    <h5 class="mt-2">
+                        ${tablaActualA[1].equipo}
+                    </h5>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="card border-0 shadow-sm text-center">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        1° GRUPO B
+                    </small>
+
+                    <h5 class="mt-2">
+                        ${tablaActualB[0].equipo}
+                    </h5>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="card border-0 shadow-sm text-center">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        2° GRUPO B
+                    </small>
+
+                    <h5 class="mt-2">
+                        ${tablaActualB[1].equipo}
+                    </h5>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    `;
+}
+
+function obtenerSemifinales() {
+
+    return [
+
+        {
+
+            local:
+                tablaActualA[0].equipo,
+
+            visitante:
+                tablaActualB[1].equipo
+
+        },
+
+        {
+
+            local:
+                tablaActualB[0].equipo,
+
+            visitante:
+                tablaActualA[1].equipo
+
+        }
+
+    ];
+}
+
+function mostrarSemifinales() {
+
+    const seccion =
+        document.getElementById(
+            "seccionSemifinales"
+        );
+
+    const contenedor =
+        document.getElementById(
+            "partidosSemifinal"
+        );
+
+    seccion.classList.remove(
+        "d-none"
+    );
+
+    contenedor.innerHTML = "";
+
+    const semifinales =
+        obtenerSemifinales();
+
+    semifinales.forEach(
+        (partido, indice) => {
+
+            contenedor.appendChild(
+
+                crearTarjetaPartido(
+
+                    partido,
+
+                    `SF-${indice}`,
+
+                    "semifinal"
+
+                )
+
+            );
+        }
+    );
+
+    const resultado1 =
+        resultados["SF-0"];
+
+    const resultado2 =
+        resultados["SF-1"];
+
+    const completa1 =
+        resultado1 &&
+        calcularResultadoPartido(
+            resultado1
+        ).partidoCompleto;
+
+    const completa2 =
+        resultado2 &&
+        calcularResultadoPartido(
+            resultado2
+        ).partidoCompleto;
+
+    if (
+        completa1 &&
+        completa2
+    ) {
+
+        mostrarFinal(
+            semifinales
+        );
+
+    } else {
+
+        document.getElementById(
+            "seccionFinal"
+        ).classList.add(
+            "d-none"
+        );
+
+        document.getElementById(
+            "seccionCampeon"
+        ).classList.add(
+            "d-none"
+        );
+    }
+}
+
+function mostrarFinal(semifinales) {
+
+    const ganador1 =
+        obtenerGanador(
+            semifinales[0],
+            resultados["SF-0"]
+        );
+
+    const ganador2 =
+        obtenerGanador(
+            semifinales[1],
+            resultados["SF-1"]
+        );
+
+    if (
+        !ganador1 ||
+        !ganador2
+    ) {
+
+        return;
+    }
+
+    const partido = {
+
+        local:
+            ganador1,
+
+        visitante:
+            ganador2
+
+    };
+
+    const seccion =
+        document.getElementById(
+            "seccionFinal"
+        );
+
+    const contenedor =
+        document.getElementById(
+            "partidoFinal"
+        );
+
+    seccion.classList.remove(
+        "d-none"
+    );
+
+    contenedor.innerHTML = "";
+
+    contenedor.appendChild(
+
+        crearTarjetaPartido(
+            partido,
+            "F-0",
+            "final"
+        )
+
+    );
+
+    const resultadoFinal =
+        resultados["F-0"];
+
+    if (
+        resultadoFinal &&
+        calcularResultadoPartido(
+            resultadoFinal
+        ).partidoCompleto
+    ) {
+
+        const campeon =
+            obtenerGanador(
+                partido,
+                resultadoFinal
+            );
+
+        if (campeon) {
+
+            document.getElementById(
+                "seccionCampeon"
+            ).classList.remove(
+                "d-none"
+            );
+
+            document.getElementById(
+                "nombreCampeon"
+            ).textContent =
+                campeon;
+        }
+
+    } else {
+
+        document.getElementById(
+            "seccionCampeon"
+        ).classList.add(
+            "d-none"
+        );
+    }
+}
+
+function actualizarPartidosCargadosLiga() {
 
     let cantidad = 0;
 
     fixture.forEach(
-
         (datosFecha, numeroFecha) => {
 
             datosFecha.partidos.forEach(
-
                 (partido, indice) => {
 
-                    const id =
-                        `${numeroFecha}-${indice}`;
+                    const resultado =
+                        resultados[
+                            `L-${numeroFecha}-${indice}`
+                        ];
 
                     if (
-                        resultadosPartidos[id]
+                        resultado &&
+                        calcularResultadoPartido(
+                            resultado
+                        ).partidoCompleto
                     ) {
 
                         cantidad++;
@@ -847,13 +1865,43 @@ function actualizarPartidosCargados() {
         cantidad;
 }
 
+function actualizarPartidosCargadosCopa() {
+
+    let cantidad = 0;
+
+    Object.keys(resultados).forEach(
+        id => {
+
+            if (
+                id.startsWith("A-") ||
+                id.startsWith("B-") ||
+                id.startsWith("SF-") ||
+                id.startsWith("F-")
+            ) {
+
+                const resumen =
+                    calcularResultadoPartido(
+                        resultados[id]
+                    );
+
+                if (resumen.partidoCompleto) {
+
+                    cantidad++;
+                }
+            }
+        }
+    );
+
+    document.getElementById(
+        "partidosCargados"
+    ).textContent =
+        cantidad;
+}
 
 document.getElementById(
     "fechaSiguiente"
 ).addEventListener(
-
     "click",
-
     function () {
 
         if (
@@ -870,18 +1918,13 @@ document.getElementById(
     }
 );
 
-
 document.getElementById(
     "fechaAnterior"
 ).addEventListener(
-
     "click",
-
     function () {
 
-        if (
-            fechaActual > 0
-        ) {
+        if (fechaActual > 0) {
 
             fechaActual--;
 
@@ -892,7 +1935,6 @@ document.getElementById(
     }
 );
 
-
 function guardarFechaActual() {
 
     localStorage.setItem(
@@ -901,32 +1943,22 @@ function guardarFechaActual() {
     );
 }
 
-
 function actualizarBotonesFechas() {
 
-    const anterior =
-        document.getElementById(
-            "fechaAnterior"
-        );
-
-    const siguiente =
-        document.getElementById(
-            "fechaSiguiente"
-        );
-
-    anterior.disabled =
+    document.getElementById(
+        "fechaAnterior"
+    ).disabled =
         fechaActual === 0;
 
-    siguiente.disabled =
+    document.getElementById(
+        "fechaSiguiente"
+    ).disabled =
         fechaActual ===
         fixture.length - 1;
 }
 
-
 btnReset.addEventListener(
-
     "click",
-
     function () {
 
         const confirmar =
@@ -955,15 +1987,29 @@ btnReset.addEventListener(
             "fechaActualLiga"
         );
 
+        localStorage.removeItem(
+            "modalidadLiga"
+        );
+
         equipos = [];
 
-        resultadosPartidos = {};
+        resultados = {};
 
         torneoGenerado = false;
+
+        modalidad = "liga";
 
         fechaActual = 0;
 
         fixture = [];
+
+        grupoA = [];
+
+        grupoB = [];
+
+        fixtureA = [];
+
+        fixtureB = [];
 
         seccionTorneo.classList.add(
             "d-none"
@@ -977,29 +2023,45 @@ btnReset.addEventListener(
             "d-none"
         );
 
+        modalidadTorneo.value =
+            "liga";
+
         mostrarEquiposConfiguracion();
+
+        actualizarAyudaModalidad();
     }
 );
 
-
 function iniciarPagina() {
+
+    modalidadTorneo.value =
+        modalidad;
+
+    actualizarAyudaModalidad();
 
     if (
         torneoGenerado &&
         equipos.length >= 2
     ) {
 
-        fixture =
-            generarFixture(
-                equipos
-            );
-
         if (
-            fechaActual >=
-            fixture.length
+            modalidad === "copa" &&
+            (
+                equipos.length < 4 ||
+                equipos.length % 2 !== 0
+            )
         ) {
 
-            fechaActual = 0;
+            torneoGenerado = false;
+
+            localStorage.setItem(
+                "torneoGenerado",
+                JSON.stringify(false)
+            );
+
+            mostrarEquiposConfiguracion();
+
+            return;
         }
 
         iniciarTorneo();
@@ -1021,6 +2083,5 @@ function iniciarPagina() {
         );
     }
 }
-
 
 iniciarPagina();
