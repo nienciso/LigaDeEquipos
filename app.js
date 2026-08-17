@@ -11,6 +11,7 @@ let fixtureA = [];
 let fixtureB = [];
 let tablaActualA = [];
 let tablaActualB = [];
+let tablaActualLiga = [];
 
 const seccionConfiguracion = document.getElementById("seccionConfiguracion");
 const seccionTorneo = document.getElementById("seccionTorneo");
@@ -20,6 +21,7 @@ const nombreEquipo = document.getElementById("nombreEquipo");
 const btnAgregarEquipo = document.getElementById("btnAgregarEquipo");
 const btnGenerarTorneo = document.getElementById("btnGenerarTorneo");
 const btnReset = document.getElementById("btnReset");
+const btnDescargarImagen = document.getElementById("btnDescargarImagen");
 const listaEquipos = document.getElementById("listaEquipos");
 const mensajeEquipo = document.getElementById("mensajeEquipo");
 const modalidadTorneo = document.getElementById("modalidadTorneo");
@@ -67,22 +69,29 @@ function agregarEquipo() {
     nombreEquipo.value = "";
 
     mostrarEquiposConfiguracion();
-    mostrarMensaje("Equipo agregado correctamente.", "success");
+
+    mostrarMensaje(
+        "Equipo agregado correctamente.",
+        "success"
+    );
 
     nombreEquipo.focus();
 }
 
 function eliminarEquipo(indice) {
     equipos.splice(indice, 1);
+
     guardarEquipos();
+
     mostrarEquiposConfiguracion();
 }
 
 function mostrarEquiposConfiguracion() {
     listaEquipos.innerHTML = "";
 
-    document.getElementById("cantidadEquiposConfiguracion").textContent =
-        `${equipos.length} equipos`;
+    document.getElementById(
+        "cantidadEquiposConfiguracion"
+    ).textContent = `${equipos.length} equipos`;
 
     if (equipos.length === 0) {
         listaEquipos.innerHTML = `
@@ -122,14 +131,18 @@ function actualizarRequisito() {
     const texto = document.getElementById("textoRequisito");
 
     if (modalidadTorneo.value === "liga") {
-        btnGenerarTorneo.disabled = equipos.length < 2;
-        texto.textContent = "Necesitás al menos 2 equipos.";
+        btnGenerarTorneo.disabled =
+            equipos.length < 2;
+
+        texto.textContent =
+            "Necesitás al menos 2 equipos.";
     } else {
         const valido =
             equipos.length >= 4 &&
             equipos.length % 2 === 0;
 
-        btnGenerarTorneo.disabled = !valido;
+        btnGenerarTorneo.disabled =
+            !valido;
 
         texto.textContent =
             "Para Grupos + Eliminatorias necesitás al menos 4 equipos y una cantidad par.";
@@ -137,7 +150,8 @@ function actualizarRequisito() {
 }
 
 function actualizarAyudaModalidad() {
-    const ayuda = document.getElementById("ayudaModalidad");
+    const ayuda =
+        document.getElementById("ayudaModalidad");
 
     if (modalidadTorneo.value === "liga") {
         ayuda.textContent =
@@ -150,64 +164,119 @@ function actualizarAyudaModalidad() {
     actualizarRequisito();
 }
 
-btnAgregarEquipo.addEventListener("click", agregarEquipo);
+btnAgregarEquipo.addEventListener(
+    "click",
+    agregarEquipo
+);
 
-nombreEquipo.addEventListener("keydown", function (evento) {
-    if (evento.key === "Enter") {
-        agregarEquipo();
+nombreEquipo.addEventListener(
+    "keydown",
+    function (evento) {
+        if (evento.key === "Enter") {
+            agregarEquipo();
+        }
     }
-});
+);
 
-modalidadTorneo.addEventListener("change", actualizarAyudaModalidad);
+modalidadTorneo.addEventListener(
+    "change",
+    actualizarAyudaModalidad
+);
 
-btnGenerarTorneo.addEventListener("click", function () {
-    modalidad = modalidadTorneo.value;
+btnGenerarTorneo.addEventListener(
+    "click",
+    function () {
+        modalidad =
+            modalidadTorneo.value;
 
-    if (modalidad === "liga" && equipos.length < 2) {
-        return;
+        if (
+            modalidad === "liga" &&
+            equipos.length < 2
+        ) {
+            return;
+        }
+
+        if (
+            modalidad === "copa" &&
+            (
+                equipos.length < 4 ||
+                equipos.length % 2 !== 0
+            )
+        ) {
+            return;
+        }
+
+        torneoGenerado = true;
+        resultados = {};
+        fechaActual = 0;
+
+        localStorage.setItem(
+            "torneoGenerado",
+            JSON.stringify(true)
+        );
+
+        localStorage.setItem(
+            "modalidadLiga",
+            modalidad
+        );
+
+        localStorage.setItem(
+            "resultadosLiga",
+            JSON.stringify({})
+        );
+
+        localStorage.setItem(
+            "fechaActualLiga",
+            "0"
+        );
+
+        iniciarTorneo();
     }
-
-    if (
-        modalidad === "copa" &&
-        (equipos.length < 4 || equipos.length % 2 !== 0)
-    ) {
-        return;
-    }
-
-    torneoGenerado = true;
-    resultados = {};
-    fechaActual = 0;
-
-    localStorage.setItem("torneoGenerado", JSON.stringify(true));
-    localStorage.setItem("modalidadLiga", modalidad);
-    localStorage.setItem("resultadosLiga", JSON.stringify({}));
-    localStorage.setItem("fechaActualLiga", "0");
-
-    iniciarTorneo();
-});
+);
 
 function generarFixture(listaEquipos) {
-    let equiposFixture = [...listaEquipos];
+    let equiposFixture =
+        [...listaEquipos];
 
-    if (equiposFixture.length % 2 !== 0) {
+    if (
+        equiposFixture.length % 2 !== 0
+    ) {
         equiposFixture.push("LIBRE");
     }
 
-    const cantidad = equiposFixture.length;
-    const cantidadFechas = cantidad - 1;
-    const partidosPorFecha = cantidad / 2;
+    const cantidad =
+        equiposFixture.length;
 
-    let rotacion = [...equiposFixture];
+    const cantidadFechas =
+        cantidad - 1;
+
+    const partidosPorFecha =
+        cantidad / 2;
+
+    let rotacion =
+        [...equiposFixture];
 
     const fixtureGenerado = [];
 
-    for (let fecha = 0; fecha < cantidadFechas; fecha++) {
+    for (
+        let fecha = 0;
+        fecha < cantidadFechas;
+        fecha++
+    ) {
         const partidosFecha = [];
+
         let libre = null;
 
-        for (let partido = 0; partido < partidosPorFecha; partido++) {
-            const equipoA = rotacion[partido];
-            const equipoB = rotacion[cantidad - 1 - partido];
+        for (
+            let partido = 0;
+            partido < partidosPorFecha;
+            partido++
+        ) {
+            const equipoA =
+                rotacion[partido];
+
+            const equipoB =
+                rotacion[cantidad - 1 - partido];
 
             if (equipoA === "LIBRE") {
                 libre = equipoB;
@@ -220,8 +289,15 @@ function generarFixture(listaEquipos) {
             }
 
             partidosFecha.push({
-                local: fecha % 2 === 0 ? equipoA : equipoB,
-                visitante: fecha % 2 === 0 ? equipoB : equipoA
+                local:
+                    fecha % 2 === 0
+                        ? equipoA
+                        : equipoB,
+
+                visitante:
+                    fecha % 2 === 0
+                        ? equipoB
+                        : equipoA
             });
         }
 
@@ -230,12 +306,20 @@ function generarFixture(listaEquipos) {
             libre: libre
         });
 
-        const fijo = rotacion[0];
-        const resto = rotacion.slice(1);
+        const fijo =
+            rotacion[0];
 
-        resto.unshift(resto.pop());
+        const resto =
+            rotacion.slice(1);
 
-        rotacion = [fijo, ...resto];
+        resto.unshift(
+            resto.pop()
+        );
+
+        rotacion = [
+            fijo,
+            ...resto
+        ];
     }
 
     return fixtureGenerado;
@@ -244,8 +328,16 @@ function generarFixture(listaEquipos) {
 function generarPartidosGrupo(lista) {
     const partidos = [];
 
-    for (let i = 0; i < lista.length; i++) {
-        for (let j = i + 1; j < lista.length; j++) {
+    for (
+        let i = 0;
+        i < lista.length;
+        i++
+    ) {
+        for (
+            let j = i + 1;
+            j < lista.length;
+            j++
+        ) {
             partidos.push({
                 local: lista[i],
                 visitante: lista[j]
@@ -268,8 +360,11 @@ function dividirGrupos() {
         }
     });
 
-    fixtureA = generarPartidosGrupo(grupoA);
-    fixtureB = generarPartidosGrupo(grupoB);
+    fixtureA =
+        generarPartidosGrupo(grupoA);
+
+    fixtureB =
+        generarPartidosGrupo(grupoB);
 }
 
 function crearResultadoVacio() {
@@ -302,14 +397,20 @@ function normalizarResultado(resultado) {
 
     return {
         sets: [0, 1, 2].map(indice => ({
-            local: resultado.sets[indice]?.local ?? "",
-            visitante: resultado.sets[indice]?.visitante ?? ""
+            local:
+                resultado.sets[indice]?.local ?? "",
+
+            visitante:
+                resultado.sets[indice]?.visitante ?? ""
         }))
     };
 }
 
 function setCompleto(local, visitante) {
-    if (local === "" || visitante === "") {
+    if (
+        local === "" ||
+        visitante === ""
+    ) {
         return false;
     }
 
@@ -321,25 +422,39 @@ function setCompleto(local, visitante) {
         !Number.isInteger(b) ||
         a < 0 ||
         b < 0 ||
+        a > 17 ||
+        b > 17 ||
         a === b
     ) {
         return false;
     }
 
-    const ganador = Math.max(a, b);
-    const perdedor = Math.min(a, b);
+    const ganador =
+        Math.max(a, b);
 
-    if (ganador === 15 && perdedor <= 13) {
+    const perdedor =
+        Math.min(a, b);
+
+    if (
+        ganador === 15 &&
+        perdedor <= 13
+    ) {
         return true;
     }
 
-    if (ganador === 16 && perdedor === 14) {
+    if (
+        ganador === 16 &&
+        perdedor === 14
+    ) {
         return true;
     }
 
     if (
         ganador === 17 &&
-        (perdedor === 15 || perdedor === 16)
+        (
+            perdedor === 15 ||
+            perdedor === 16
+        )
     ) {
         return true;
     }
@@ -348,22 +463,30 @@ function setCompleto(local, visitante) {
 }
 
 function obtenerGanadorSet(set) {
-    if (!setCompleto(set.local, set.visitante)) {
+    if (
+        !setCompleto(
+            set.local,
+            set.visitante
+        )
+    ) {
         return null;
     }
 
-    if (Number(set.local) > Number(set.visitante)) {
-        return "local";
-    }
-
-    return "visitante";
+    return Number(set.local) >
+        Number(set.visitante)
+        ? "local"
+        : "visitante";
 }
 
 function necesitaTercerSet(resultado) {
-    const datos = normalizarResultado(resultado);
+    const datos =
+        normalizarResultado(resultado);
 
-    const ganador1 = obtenerGanadorSet(datos.sets[0]);
-    const ganador2 = obtenerGanadorSet(datos.sets[1]);
+    const ganador1 =
+        obtenerGanadorSet(datos.sets[0]);
+
+    const ganador2 =
+        obtenerGanadorSet(datos.sets[1]);
 
     return (
         ganador1 !== null &&
@@ -373,14 +496,23 @@ function necesitaTercerSet(resultado) {
 }
 
 function calcularResultadoPartido(resultado) {
-    const datos = normalizarResultado(resultado);
+    const datos =
+        normalizarResultado(resultado);
 
-    const set1 = datos.sets[0];
-    const set2 = datos.sets[1];
-    const set3 = datos.sets[2];
+    const set1 =
+        datos.sets[0];
 
-    const ganador1 = obtenerGanadorSet(set1);
-    const ganador2 = obtenerGanadorSet(set2);
+    const set2 =
+        datos.sets[1];
+
+    const set3 =
+        datos.sets[2];
+
+    const ganador1 =
+        obtenerGanadorSet(set1);
+
+    const ganador2 =
+        obtenerGanadorSet(set2);
 
     let setsLocal = 0;
     let setsVisitante = 0;
@@ -395,8 +527,11 @@ function calcularResultadoPartido(resultado) {
     let usaTercerSet = false;
 
     if (ganador1 !== null) {
-        golesLocal += Number(set1.local);
-        golesVisitante += Number(set1.visitante);
+        golesLocal +=
+            Number(set1.local);
+
+        golesVisitante +=
+            Number(set1.visitante);
 
         if (ganador1 === "local") {
             setsLocal++;
@@ -406,8 +541,11 @@ function calcularResultadoPartido(resultado) {
     }
 
     if (ganador2 !== null) {
-        golesLocal += Number(set2.local);
-        golesVisitante += Number(set2.visitante);
+        golesLocal +=
+            Number(set2.local);
+
+        golesVisitante +=
+            Number(set2.visitante);
 
         if (ganador2 === "local") {
             setsLocal++;
@@ -420,7 +558,9 @@ function calcularResultadoPartido(resultado) {
         ganador1 !== null &&
         ganador2 !== null
     ) {
-        if (ganador1 === ganador2) {
+        if (
+            ganador1 === ganador2
+        ) {
             partidoCompleto = true;
 
             if (setsLocal === 2) {
@@ -433,11 +573,15 @@ function calcularResultadoPartido(resultado) {
         } else {
             usaTercerSet = true;
 
-            const ganador3 = obtenerGanadorSet(set3);
+            const ganador3 =
+                obtenerGanadorSet(set3);
 
             if (ganador3 !== null) {
-                golesLocal += Number(set3.local);
-                golesVisitante += Number(set3.visitante);
+                golesLocal +=
+                    Number(set3.local);
+
+                golesVisitante +=
+                    Number(set3.visitante);
 
                 if (ganador3 === "local") {
                     setsLocal++;
@@ -470,21 +614,33 @@ function calcularResultadoPartido(resultado) {
     };
 }
 
-function obtenerGanador(partido, resultado) {
-    const resumen = calcularResultadoPartido(resultado);
+function obtenerGanador(
+    partido,
+    resultado
+) {
+    const resumen =
+        calcularResultadoPartido(resultado);
 
     if (!resumen.partidoCompleto) {
         return null;
     }
 
-    if (resumen.setsLocal > resumen.setsVisitante) {
+    if (
+        resumen.setsLocal >
+        resumen.setsVisitante
+    ) {
         return partido.local;
     }
 
     return partido.visitante;
 }
 
-function crearFilaSet(partido, idPartido, indiceSet, set) {
+function crearFilaSet(
+    partido,
+    idPartido,
+    indiceSet,
+    set
+) {
     return `
         <div class="row g-2 align-items-center mb-2">
 
@@ -497,12 +653,13 @@ function crearFilaSet(partido, idPartido, indiceSet, set) {
                     type="number"
                     min="0"
                     max="17"
+                    step="1"
                     class="form-control text-center gol-set"
                     data-id="${idPartido}"
                     data-set="${indiceSet}"
                     data-equipo="local"
                     value="${set.local}"
-                    placeholder="${partido.local}"
+                    placeholder="Goles"
                 >
             </div>
 
@@ -511,12 +668,13 @@ function crearFilaSet(partido, idPartido, indiceSet, set) {
                     type="number"
                     min="0"
                     max="17"
+                    step="1"
                     class="form-control text-center gol-set"
                     data-id="${idPartido}"
                     data-set="${indiceSet}"
                     data-equipo="visitante"
                     value="${set.visitante}"
-                    placeholder="${partido.visitante}"
+                    placeholder="Goles"
                 >
             </div>
 
@@ -530,12 +688,32 @@ function crearTarjetaPartido(
     tipo = "normal"
 ) {
     const resultado =
-        normalizarResultado(resultados[idPartido]);
+        normalizarResultado(
+            resultados[idPartido]
+        );
 
     const resumen =
         calcularResultadoPartido(resultado);
 
-    let filasSets = "";
+    let filasSets = `
+        <div class="row g-2 align-items-end mb-2">
+
+            <div class="col-2"></div>
+
+            <div class="col-5 text-center">
+                <strong>
+                    ${partido.local}
+                </strong>
+            </div>
+
+            <div class="col-5 text-center">
+                <strong>
+                    ${partido.visitante}
+                </strong>
+            </div>
+
+        </div>
+    `;
 
     filasSets += crearFilaSet(
         partido,
@@ -584,13 +762,10 @@ function crearTarjetaPartido(
         `;
     }
 
-    let puntosTexto =
-        "Resultado 2-0: ganador 3 puntos · perdedor 0 puntos";
-
-    if (resumen.usaTercerSet) {
-        puntosTexto =
-            "Resultado 2-1: ganador 2 puntos · perdedor 1 punto";
-    }
+    const puntosTexto =
+        resumen.usaTercerSet
+            ? "Resultado 2-1: ganador 2 puntos · perdedor 1 punto"
+            : "Resultado 2-0: ganador 3 puntos · perdedor 0 puntos";
 
     const columna =
         document.createElement("div");
@@ -661,82 +836,164 @@ function crearTarjetaPartido(
     return columna;
 }
 
+function limitarValorInput(input) {
+    if (input.value === "") {
+        return;
+    }
+
+    let valor =
+        Number(input.value);
+
+    if (!Number.isFinite(valor)) {
+        input.value = "";
+        return;
+    }
+
+    valor =
+        Math.trunc(valor);
+
+    if (valor < 0) {
+        valor = 0;
+    }
+
+    if (valor > 17) {
+        valor = 17;
+    }
+
+    input.value =
+        valor;
+}
+
 function agregarEventosResultados() {
     const inputs =
-        document.querySelectorAll(".gol-set");
+        document.querySelectorAll(
+            ".gol-set"
+        );
 
     inputs.forEach(input => {
-        input.addEventListener("change", function () {
-            const id = this.dataset.id;
-            const indiceSet = Number(this.dataset.set);
-            const equipo = this.dataset.equipo;
+        input.addEventListener(
+            "input",
+            function () {
+                limitarValorInput(this);
+            }
+        );
 
-            if (!resultados[id]) {
+        input.addEventListener(
+            "change",
+            function () {
+                limitarValorInput(this);
+
+                const id =
+                    this.dataset.id;
+
+                const indiceSet =
+                    Number(
+                        this.dataset.set
+                    );
+
+                const equipo =
+                    this.dataset.equipo;
+
+                if (!resultados[id]) {
+                    resultados[id] =
+                        crearResultadoVacio();
+                }
+
                 resultados[id] =
-                    crearResultadoVacio();
+                    normalizarResultado(
+                        resultados[id]
+                    );
+
+                resultados[id]
+                    .sets[indiceSet][equipo] =
+                    this.value === ""
+                        ? ""
+                        : Number(this.value);
+
+                if (
+                    indiceSet < 2 &&
+                    setCompleto(
+                        resultados[id].sets[0].local,
+                        resultados[id].sets[0].visitante
+                    ) &&
+                    setCompleto(
+                        resultados[id].sets[1].local,
+                        resultados[id].sets[1].visitante
+                    ) &&
+                    !necesitaTercerSet(
+                        resultados[id]
+                    )
+                ) {
+                    resultados[id].sets[2] = {
+                        local: "",
+                        visitante: ""
+                    };
+                }
+
+                guardarResultados();
+
+                if (
+                    modalidad === "liga"
+                ) {
+                    calcularTablaLiga();
+                    actualizarPartidosCargadosLiga();
+                    mostrarFecha();
+                } else {
+                    mostrarCopa();
+                }
             }
-
-            resultados[id] =
-                normalizarResultado(resultados[id]);
-
-            resultados[id]
-                .sets[indiceSet][equipo] =
-                this.value === ""
-                    ? ""
-                    : Number(this.value);
-
-            if (
-                indiceSet < 2 &&
-                setCompleto(
-                    resultados[id].sets[0].local,
-                    resultados[id].sets[0].visitante
-                ) &&
-                setCompleto(
-                    resultados[id].sets[1].local,
-                    resultados[id].sets[1].visitante
-                ) &&
-                !necesitaTercerSet(resultados[id])
-            ) {
-                resultados[id].sets[2] = {
-                    local: "",
-                    visitante: ""
-                };
-            }
-
-            guardarResultados();
-
-            if (modalidad === "liga") {
-                calcularTablaLiga();
-                actualizarPartidosCargadosLiga();
-                mostrarFecha();
-            } else {
-                mostrarCopa();
-            }
-        });
+        );
     });
 }
 
 function iniciarTorneo() {
-    seccionConfiguracion.classList.add("d-none");
-    seccionTorneo.classList.remove("d-none");
-    btnReset.classList.remove("d-none");
+    seccionConfiguracion.classList.add(
+        "d-none"
+    );
 
-    document.getElementById("totalEquipos").textContent =
+    seccionTorneo.classList.remove(
+        "d-none"
+    );
+
+    btnReset.classList.remove(
+        "d-none"
+    );
+
+    if (btnDescargarImagen) {
+        btnDescargarImagen.classList.remove(
+            "d-none"
+        );
+    }
+
+    document.getElementById(
+        "totalEquipos"
+    ).textContent =
         equipos.length;
 
     if (modalidad === "liga") {
-        modoLiga.classList.remove("d-none");
-        modoCopa.classList.add("d-none");
+        modoLiga.classList.remove(
+            "d-none"
+        );
+
+        modoCopa.classList.add(
+            "d-none"
+        );
 
         fixture =
             generarFixture(equipos);
 
         mostrarLiga();
     } else {
-        modoLiga.classList.add("d-none");
-        modoCopa.classList.remove("d-none");
+        modoLiga.classList.add(
+            "d-none"
+        );
+
+        modoCopa.classList.remove(
+            "d-none"
+        );
 
         dividirGrupos();
+
         mostrarCopa();
     }
 }
@@ -745,16 +1002,23 @@ function mostrarLiga() {
     let totalPartidos = 0;
 
     fixture.forEach(fecha => {
-        totalPartidos += fecha.partidos.length;
+        totalPartidos +=
+            fecha.partidos.length;
     });
 
-    document.getElementById("totalFechas").textContent =
+    document.getElementById(
+        "totalFechas"
+    ).textContent =
         fixture.length;
 
-    document.getElementById("labelFechas").textContent =
+    document.getElementById(
+        "labelFechas"
+    ).textContent =
         "Fechas";
 
-    document.getElementById("totalPartidos").textContent =
+    document.getElementById(
+        "totalPartidos"
+    ).textContent =
         totalPartidos;
 
     mostrarFecha();
@@ -764,28 +1028,41 @@ function mostrarLiga() {
 
 function mostrarFecha() {
     const contenedor =
-        document.getElementById("contenedorPartidos");
+        document.getElementById(
+            "contenedorPartidos"
+        );
 
     const equipoLibre =
-        document.getElementById("equipoLibre");
+        document.getElementById(
+            "equipoLibre"
+        );
 
     contenedor.innerHTML = "";
 
-    document.getElementById("numeroFecha").textContent =
+    document.getElementById(
+        "numeroFecha"
+    ).textContent =
         `Fecha ${fechaActual + 1}`;
 
     const datosFecha =
         fixture[fechaActual];
 
     if (datosFecha.libre) {
-        equipoLibre.classList.remove("d-none");
+        equipoLibre.classList.remove(
+            "d-none"
+        );
 
         equipoLibre.innerHTML = `
-            <strong>Equipo libre:</strong>
+            <strong>
+                Equipo libre:
+            </strong>
+
             ${datosFecha.libre}
         `;
     } else {
-        equipoLibre.classList.add("d-none");
+        equipoLibre.classList.add(
+            "d-none"
+        );
     }
 
     datosFecha.partidos.forEach(
@@ -803,6 +1080,7 @@ function mostrarFecha() {
     );
 
     agregarEventosResultados();
+
     actualizarBotonesFechas();
 }
 
@@ -811,7 +1089,7 @@ function calcularTablaLiga() {
 
     equipos.forEach(equipo => {
         tabla[equipo] = {
-            equipo: equipo,
+            equipo,
             puntos: 0,
             goles: 0
         };
@@ -832,73 +1110,51 @@ function calcularTablaLiga() {
                     }
 
                     const resumen =
-                        calcularResultadoPartido(resultado);
+                        calcularResultadoPartido(
+                            resultado
+                        );
 
-                    tabla[partido.local].goles +=
+                    tabla[
+                        partido.local
+                    ].goles +=
                         resumen.golesLocal;
 
-                    tabla[partido.visitante].goles +=
+                    tabla[
+                        partido.visitante
+                    ].goles +=
                         resumen.golesVisitante;
 
-                    if (!resumen.partidoCompleto) {
+                    if (
+                        !resumen.partidoCompleto
+                    ) {
                         return;
                     }
 
-                    tabla[partido.local].puntos +=
+                    tabla[
+                        partido.local
+                    ].puntos +=
                         resumen.puntosLocal;
 
-                    tabla[partido.visitante].puntos +=
+                    tabla[
+                        partido.visitante
+                    ].puntos +=
                         resumen.puntosVisitante;
                 }
             );
         }
     );
 
-    mostrarTabla(
-        ordenarTabla(Object.values(tabla)),
-        document.getElementById("tablaPosiciones")
-    );
-}
-
-function mostrarCopa() {
-    tablaActualA =
-        calcularTablaGrupo(
-            grupoA,
-            fixtureA,
-            "A"
-        );
-
-    tablaActualB =
-        calcularTablaGrupo(
-            grupoB,
-            fixtureB,
-            "B"
+    tablaActualLiga =
+        ordenarTabla(
+            Object.values(tabla)
         );
 
     mostrarTabla(
-        tablaActualA,
-        document.getElementById("tablaGrupoA")
+        tablaActualLiga,
+        document.getElementById(
+            "tablaPosiciones"
+        )
     );
-
-    mostrarTabla(
-        tablaActualB,
-        document.getElementById("tablaGrupoB")
-    );
-
-    mostrarPartidosGrupo(
-        fixtureA,
-        "A",
-        document.getElementById("partidosGrupoA")
-    );
-
-    mostrarPartidosGrupo(
-        fixtureB,
-        "B",
-        document.getElementById("partidosGrupoB")
-    );
-
-    actualizarCopa();
-    agregarEventosResultados();
 }
 
 function calcularTablaGrupo(
@@ -910,7 +1166,7 @@ function calcularTablaGrupo(
 
     equiposGrupo.forEach(equipo => {
         tabla[equipo] = {
-            equipo: equipo,
+            equipo,
             puntos: 0,
             goles: 0
         };
@@ -929,22 +1185,34 @@ function calcularTablaGrupo(
             }
 
             const resumen =
-                calcularResultadoPartido(resultado);
+                calcularResultadoPartido(
+                    resultado
+                );
 
-            tabla[partido.local].goles +=
+            tabla[
+                partido.local
+            ].goles +=
                 resumen.golesLocal;
 
-            tabla[partido.visitante].goles +=
+            tabla[
+                partido.visitante
+            ].goles +=
                 resumen.golesVisitante;
 
-            if (!resumen.partidoCompleto) {
+            if (
+                !resumen.partidoCompleto
+            ) {
                 return;
             }
 
-            tabla[partido.local].puntos +=
+            tabla[
+                partido.local
+            ].puntos +=
                 resumen.puntosLocal;
 
-            tabla[partido.visitante].puntos +=
+            tabla[
+                partido.visitante
+            ].puntos +=
                 resumen.puntosVisitante;
         }
     );
@@ -955,25 +1223,43 @@ function calcularTablaGrupo(
 }
 
 function ordenarTabla(tabla) {
-    return tabla.sort((a, b) => {
-        if (b.puntos !== a.puntos) {
-            return b.puntos - a.puntos;
-        }
+    return tabla.sort(
+        (a, b) => {
+            if (
+                b.puntos !==
+                a.puntos
+            ) {
+                return (
+                    b.puntos -
+                    a.puntos
+                );
+            }
 
-        return b.goles - a.goles;
-    });
+            return (
+                b.goles -
+                a.goles
+            );
+        }
+    );
 }
 
-function mostrarTabla(posiciones, tbody) {
+function mostrarTabla(
+    posiciones,
+    tbody
+) {
     tbody.innerHTML = "";
 
     posiciones.forEach(
         (equipo, indice) => {
             const fila =
-                document.createElement("tr");
+                document.createElement(
+                    "tr"
+                );
 
             if (indice < 2) {
-                fila.classList.add("primero");
+                fila.classList.add(
+                    "primero"
+                );
             }
 
             fila.innerHTML = `
@@ -996,7 +1282,9 @@ function mostrarTabla(posiciones, tbody) {
                 </td>
             `;
 
-            tbody.appendChild(fila);
+            tbody.appendChild(
+                fila
+            );
         }
     );
 }
@@ -1023,38 +1311,89 @@ function mostrarPartidosGrupo(
     );
 }
 
+function grupoCompleto(
+    partidos,
+    prefijo
+) {
+    return partidos.every(
+        (partido, indice) => {
+            const resultado =
+                resultados[
+                    `${prefijo}-${indice}`
+                ];
+
+            if (!resultado) {
+                return false;
+            }
+
+            return calcularResultadoPartido(
+                resultado
+            ).partidoCompleto;
+        }
+    );
+}
+
 function gruposCompletos() {
-    const completosA =
-        fixtureA.every(
-            (partido, indice) => {
-                const resultado =
-                    resultados[`A-${indice}`];
+    return (
+        grupoCompleto(
+            fixtureA,
+            "A"
+        ) &&
+        grupoCompleto(
+            fixtureB,
+            "B"
+        )
+    );
+}
 
-                return (
-                    resultado &&
-                    calcularResultadoPartido(
-                        resultado
-                    ).partidoCompleto
-                );
-            }
+function mostrarCopa() {
+    tablaActualA =
+        calcularTablaGrupo(
+            grupoA,
+            fixtureA,
+            "A"
         );
 
-    const completosB =
-        fixtureB.every(
-            (partido, indice) => {
-                const resultado =
-                    resultados[`B-${indice}`];
-
-                return (
-                    resultado &&
-                    calcularResultadoPartido(
-                        resultado
-                    ).partidoCompleto
-                );
-            }
+    tablaActualB =
+        calcularTablaGrupo(
+            grupoB,
+            fixtureB,
+            "B"
         );
 
-    return completosA && completosB;
+    mostrarTabla(
+        tablaActualA,
+        document.getElementById(
+            "tablaGrupoA"
+        )
+    );
+
+    mostrarTabla(
+        tablaActualB,
+        document.getElementById(
+            "tablaGrupoB"
+        )
+    );
+
+    mostrarPartidosGrupo(
+        fixtureA,
+        "A",
+        document.getElementById(
+            "partidosGrupoA"
+        )
+    );
+
+    mostrarPartidosGrupo(
+        fixtureB,
+        "B",
+        document.getElementById(
+            "partidosGrupoB"
+        )
+    );
+
+    actualizarCopa();
+
+    agregarEventosResultados();
 }
 
 function actualizarCopa() {
@@ -1062,13 +1401,19 @@ function actualizarCopa() {
         fixtureA.length +
         fixtureB.length;
 
-    document.getElementById("totalFechas").textContent =
+    document.getElementById(
+        "totalFechas"
+    ).textContent =
         "2";
 
-    document.getElementById("labelFechas").textContent =
+    document.getElementById(
+        "labelFechas"
+    ).textContent =
         "Grupos";
 
-    document.getElementById("totalPartidos").textContent =
+    document.getElementById(
+        "totalPartidos"
+    ).textContent =
         totalPartidosGrupos + 3;
 
     actualizarPartidosCargadosCopa();
@@ -1076,7 +1421,9 @@ function actualizarCopa() {
     if (!gruposCompletos()) {
         document.getElementById(
             "mensajeClasificados"
-        ).classList.remove("d-none");
+        ).classList.remove(
+            "d-none"
+        );
 
         document.getElementById(
             "clasificados"
@@ -1084,15 +1431,21 @@ function actualizarCopa() {
 
         document.getElementById(
             "seccionSemifinales"
-        ).classList.add("d-none");
+        ).classList.add(
+            "d-none"
+        );
 
         document.getElementById(
             "seccionFinal"
-        ).classList.add("d-none");
+        ).classList.add(
+            "d-none"
+        );
 
         document.getElementById(
             "seccionCampeon"
-        ).classList.add("d-none");
+        ).classList.add(
+            "d-none"
+        );
 
         return;
     }
@@ -1104,17 +1457,28 @@ function actualizarCopa() {
 function mostrarClasificados() {
     document.getElementById(
         "mensajeClasificados"
-    ).classList.add("d-none");
+    ).classList.add(
+        "d-none"
+    );
 
     const clasificados =
-        document.getElementById("clasificados");
+        document.getElementById(
+            "clasificados"
+        );
 
     clasificados.innerHTML = `
         <div class="col-md-3">
             <div class="card border-0 shadow-sm text-center">
                 <div class="card-body">
-                    <small class="text-muted">1° GRUPO A</small>
-                    <h5 class="mt-2">${tablaActualA[0].equipo}</h5>
+
+                    <small class="text-muted">
+                        1° GRUPO A
+                    </small>
+
+                    <h5 class="mt-2">
+                        ${tablaActualA[0].equipo}
+                    </h5>
+
                 </div>
             </div>
         </div>
@@ -1122,8 +1486,15 @@ function mostrarClasificados() {
         <div class="col-md-3">
             <div class="card border-0 shadow-sm text-center">
                 <div class="card-body">
-                    <small class="text-muted">2° GRUPO A</small>
-                    <h5 class="mt-2">${tablaActualA[1].equipo}</h5>
+
+                    <small class="text-muted">
+                        2° GRUPO A
+                    </small>
+
+                    <h5 class="mt-2">
+                        ${tablaActualA[1].equipo}
+                    </h5>
+
                 </div>
             </div>
         </div>
@@ -1131,8 +1502,15 @@ function mostrarClasificados() {
         <div class="col-md-3">
             <div class="card border-0 shadow-sm text-center">
                 <div class="card-body">
-                    <small class="text-muted">1° GRUPO B</small>
-                    <h5 class="mt-2">${tablaActualB[0].equipo}</h5>
+
+                    <small class="text-muted">
+                        1° GRUPO B
+                    </small>
+
+                    <h5 class="mt-2">
+                        ${tablaActualB[0].equipo}
+                    </h5>
+
                 </div>
             </div>
         </div>
@@ -1140,8 +1518,15 @@ function mostrarClasificados() {
         <div class="col-md-3">
             <div class="card border-0 shadow-sm text-center">
                 <div class="card-body">
-                    <small class="text-muted">2° GRUPO B</small>
-                    <h5 class="mt-2">${tablaActualB[1].equipo}</h5>
+
+                    <small class="text-muted">
+                        2° GRUPO B
+                    </small>
+
+                    <h5 class="mt-2">
+                        ${tablaActualB[1].equipo}
+                    </h5>
+
                 </div>
             </div>
         </div>
@@ -1151,24 +1536,37 @@ function mostrarClasificados() {
 function obtenerSemifinales() {
     return [
         {
-            local: tablaActualA[0].equipo,
-            visitante: tablaActualB[1].equipo
+            local:
+                tablaActualA[0].equipo,
+
+            visitante:
+                tablaActualB[1].equipo
         },
         {
-            local: tablaActualB[0].equipo,
-            visitante: tablaActualA[1].equipo
+            local:
+                tablaActualB[0].equipo,
+
+            visitante:
+                tablaActualA[1].equipo
         }
     ];
 }
 
 function mostrarSemifinales() {
     const seccion =
-        document.getElementById("seccionSemifinales");
+        document.getElementById(
+            "seccionSemifinales"
+        );
 
     const contenedor =
-        document.getElementById("partidosSemifinal");
+        document.getElementById(
+            "partidosSemifinal"
+        );
 
-    seccion.classList.remove("d-none");
+    seccion.classList.remove(
+        "d-none"
+    );
+
     contenedor.innerHTML = "";
 
     const semifinales =
@@ -1204,16 +1602,25 @@ function mostrarSemifinales() {
             resultado2
         ).partidoCompleto;
 
-    if (completa1 && completa2) {
-        mostrarFinal(semifinales);
+    if (
+        completa1 &&
+        completa2
+    ) {
+        mostrarFinal(
+            semifinales
+        );
     } else {
         document.getElementById(
             "seccionFinal"
-        ).classList.add("d-none");
+        ).classList.add(
+            "d-none"
+        );
 
         document.getElementById(
             "seccionCampeon"
-        ).classList.add("d-none");
+        ).classList.add(
+            "d-none"
+        );
     }
 }
 
@@ -1230,7 +1637,10 @@ function mostrarFinal(semifinales) {
             resultados["SF-1"]
         );
 
-    if (!ganador1 || !ganador2) {
+    if (
+        !ganador1 ||
+        !ganador2
+    ) {
         return;
     }
 
@@ -1240,12 +1650,19 @@ function mostrarFinal(semifinales) {
     };
 
     const seccion =
-        document.getElementById("seccionFinal");
+        document.getElementById(
+            "seccionFinal"
+        );
 
     const contenedor =
-        document.getElementById("partidoFinal");
+        document.getElementById(
+            "partidoFinal"
+        );
 
-    seccion.classList.remove("d-none");
+    seccion.classList.remove(
+        "d-none"
+    );
+
     contenedor.innerHTML = "";
 
     contenedor.appendChild(
@@ -1274,7 +1691,9 @@ function mostrarFinal(semifinales) {
         if (campeon) {
             document.getElementById(
                 "seccionCampeon"
-            ).classList.remove("d-none");
+            ).classList.remove(
+                "d-none"
+            );
 
             document.getElementById(
                 "nombreCampeon"
@@ -1284,7 +1703,9 @@ function mostrarFinal(semifinales) {
     } else {
         document.getElementById(
             "seccionCampeon"
-        ).classList.add("d-none");
+        ).classList.add(
+            "d-none"
+        );
     }
 }
 
@@ -1322,21 +1743,47 @@ function actualizarPartidosCargadosLiga() {
 function actualizarPartidosCargadosCopa() {
     let cantidad = 0;
 
-    Object.keys(resultados).forEach(id => {
-        if (
-            id.startsWith("A-") ||
-            id.startsWith("B-") ||
-            id.startsWith("SF-") ||
-            id.startsWith("F-")
-        ) {
-            const resumen =
-                calcularResultadoPartido(
-                    resultados[id]
-                );
+    const idsGrupos = [];
 
-            if (resumen.partidoCompleto) {
-                cantidad++;
-            }
+    fixtureA.forEach(
+        (partido, indice) => {
+            idsGrupos.push(
+                `A-${indice}`
+            );
+        }
+    );
+
+    fixtureB.forEach(
+        (partido, indice) => {
+            idsGrupos.push(
+                `B-${indice}`
+            );
+        }
+    );
+
+    idsGrupos.forEach(id => {
+        if (
+            resultados[id] &&
+            calcularResultadoPartido(
+                resultados[id]
+            ).partidoCompleto
+        ) {
+            cantidad++;
+        }
+    });
+
+    [
+        "SF-0",
+        "SF-1",
+        "F-0"
+    ].forEach(id => {
+        if (
+            resultados[id] &&
+            calcularResultadoPartido(
+                resultados[id]
+            ).partidoCompleto
+        ) {
+            cantidad++;
         }
     });
 
@@ -1348,26 +1795,36 @@ function actualizarPartidosCargadosCopa() {
 
 document.getElementById(
     "fechaSiguiente"
-).addEventListener("click", function () {
-    if (
-        fechaActual <
-        fixture.length - 1
-    ) {
-        fechaActual++;
-        guardarFechaActual();
-        mostrarFecha();
+).addEventListener(
+    "click",
+    function () {
+        if (
+            fechaActual <
+            fixture.length - 1
+        ) {
+            fechaActual++;
+
+            guardarFechaActual();
+
+            mostrarFecha();
+        }
     }
-});
+);
 
 document.getElementById(
     "fechaAnterior"
-).addEventListener("click", function () {
-    if (fechaActual > 0) {
-        fechaActual--;
-        guardarFechaActual();
-        mostrarFecha();
+).addEventListener(
+    "click",
+    function () {
+        if (fechaActual > 0) {
+            fechaActual--;
+
+            guardarFechaActual();
+
+            mostrarFecha();
+        }
     }
-});
+);
 
 function guardarFechaActual() {
     localStorage.setItem(
@@ -1389,42 +1846,882 @@ function actualizarBotonesFechas() {
         fixture.length - 1;
 }
 
-btnReset.addEventListener("click", function () {
-    const confirmar =
-        confirm(
-            "¿Seguro que querés reiniciar el torneo? Se borrarán equipos y resultados."
+function descargarImagenTorneo() {
+    if (modalidad === "liga") {
+        descargarImagenLiga();
+    } else {
+        descargarImagenCopa();
+    }
+}
+
+function descargarImagenLiga() {
+    calcularTablaLiga();
+
+    const partidos = [];
+
+    fixture.forEach(
+        (fecha, numeroFecha) => {
+            fecha.partidos.forEach(
+                (partido, indice) => {
+                    partidos.push({
+                        partido,
+                        id:
+                            `L-${numeroFecha}-${indice}`,
+                        fecha:
+                            numeroFecha + 1
+                    });
+                }
+            );
+        }
+    );
+
+    const ancho = 1400;
+    const altoFila = 48;
+    const altoPartido = 115;
+
+    const alto =
+        270 +
+        tablaActualLiga.length *
+            altoFila +
+        partidos.length *
+            (altoPartido + 18) +
+        300;
+
+    const canvas =
+        document.createElement(
+            "canvas"
         );
 
-    if (!confirmar) {
-        return;
+    canvas.width = ancho;
+    canvas.height = alto;
+
+    const ctx =
+        canvas.getContext("2d");
+
+    ctx.fillStyle = "#ffffff";
+
+    ctx.fillRect(
+        0,
+        0,
+        ancho,
+        alto
+    );
+
+    ctx.fillStyle = "#111827";
+
+    ctx.textAlign = "center";
+
+    ctx.font =
+        "bold 42px Arial";
+
+    ctx.fillText(
+        "Liga de Equipos - Newcom",
+        ancho / 2,
+        60
+    );
+
+    ctx.font =
+        "22px Arial";
+
+    ctx.fillStyle =
+        "#6b7280";
+
+    ctx.fillText(
+        "Tabla general y enfrentamientos",
+        ancho / 2,
+        100
+    );
+
+    let y = 150;
+
+    dibujarTituloSeccion(
+        ctx,
+        "TABLA GENERAL",
+        ancho / 2,
+        y
+    );
+
+    y += 45;
+
+    dibujarTablaCanvas(
+        ctx,
+        tablaActualLiga,
+        200,
+        y,
+        1000,
+        ""
+    );
+
+    y +=
+        tablaActualLiga.length *
+            altoFila +
+        100;
+
+    dibujarTituloSeccion(
+        ctx,
+        "ENFRENTAMIENTOS",
+        ancho / 2,
+        y
+    );
+
+    y += 50;
+
+    partidos.forEach(item => {
+        ctx.fillStyle =
+            "#6b7280";
+
+        ctx.font =
+            "bold 15px Arial";
+
+        ctx.textAlign =
+            "left";
+
+        ctx.fillText(
+            `Fecha ${item.fecha}`,
+            50,
+            y + 18
+        );
+
+        y += 28;
+
+        y =
+            dibujarUnPartidoCanvas(
+                ctx,
+                item.partido,
+                resultados[
+                    item.id
+                ],
+                50,
+                y,
+                ancho - 100
+            );
+
+        y += 15;
+    });
+
+    descargarCanvas(
+        canvas
+    );
+}
+
+function descargarImagenCopa() {
+    tablaActualA =
+        calcularTablaGrupo(
+            grupoA,
+            fixtureA,
+            "A"
+        );
+
+    tablaActualB =
+        calcularTablaGrupo(
+            grupoB,
+            fixtureB,
+            "B"
+        );
+
+    const ancho = 1400;
+    const margen = 50;
+    const altoFila = 48;
+    const altoPartido = 115;
+
+    const cantidadPartidos =
+        fixtureA.length +
+        fixtureB.length +
+        3;
+
+    const alto =
+        450 +
+        Math.max(
+            tablaActualA.length,
+            tablaActualB.length
+        ) *
+            altoFila +
+        cantidadPartidos *
+            (altoPartido + 20) +
+        700;
+
+    const canvas =
+        document.createElement(
+            "canvas"
+        );
+
+    canvas.width = ancho;
+    canvas.height = alto;
+
+    const ctx =
+        canvas.getContext("2d");
+
+    ctx.fillStyle = "#ffffff";
+
+    ctx.fillRect(
+        0,
+        0,
+        ancho,
+        alto
+    );
+
+    ctx.fillStyle = "#111827";
+
+    ctx.textAlign = "center";
+
+    ctx.font =
+        "bold 42px Arial";
+
+    ctx.fillText(
+        "Liga de Equipos - Newcom",
+        ancho / 2,
+        60
+    );
+
+    ctx.font =
+        "22px Arial";
+
+    ctx.fillStyle =
+        "#6b7280";
+
+    ctx.fillText(
+        "Grupos y enfrentamientos",
+        ancho / 2,
+        100
+    );
+
+    let y = 150;
+
+    dibujarTituloSeccion(
+        ctx,
+        "TABLAS",
+        ancho / 2,
+        y
+    );
+
+    y += 50;
+
+    const anchoTabla = 600;
+
+    dibujarTablaCanvas(
+        ctx,
+        tablaActualA,
+        margen,
+        y,
+        anchoTabla,
+        "GRUPO A"
+    );
+
+    dibujarTablaCanvas(
+        ctx,
+        tablaActualB,
+        ancho -
+            margen -
+            anchoTabla,
+        y,
+        anchoTabla,
+        "GRUPO B"
+    );
+
+    y +=
+        Math.max(
+            tablaActualA.length,
+            tablaActualB.length
+        ) *
+            altoFila +
+        150;
+
+    dibujarTituloSeccion(
+        ctx,
+        "ENFRENTAMIENTOS GRUPO A",
+        ancho / 2,
+        y
+    );
+
+    y += 50;
+
+    y =
+        dibujarPartidosCanvas(
+            ctx,
+            fixtureA,
+            "A",
+            margen,
+            y,
+            ancho -
+                margen * 2
+        );
+
+    y += 40;
+
+    dibujarTituloSeccion(
+        ctx,
+        "ENFRENTAMIENTOS GRUPO B",
+        ancho / 2,
+        y
+    );
+
+    y += 50;
+
+    y =
+        dibujarPartidosCanvas(
+            ctx,
+            fixtureB,
+            "B",
+            margen,
+            y,
+            ancho -
+                margen * 2
+        );
+
+    if (gruposCompletos()) {
+        y += 40;
+
+        dibujarTituloSeccion(
+            ctx,
+            "SEMIFINALES",
+            ancho / 2,
+            y
+        );
+
+        y += 50;
+
+        const semifinales =
+            obtenerSemifinales();
+
+        y =
+            dibujarPartidosEliminatoriaCanvas(
+                ctx,
+                semifinales,
+                [
+                    "SF-0",
+                    "SF-1"
+                ],
+                margen,
+                y,
+                ancho -
+                    margen * 2
+            );
+
+        const ganador1 =
+            resultados["SF-0"]
+                ? obtenerGanador(
+                    semifinales[0],
+                    resultados["SF-0"]
+                )
+                : null;
+
+        const ganador2 =
+            resultados["SF-1"]
+                ? obtenerGanador(
+                    semifinales[1],
+                    resultados["SF-1"]
+                )
+                : null;
+
+        if (
+            ganador1 &&
+            ganador2
+        ) {
+            y += 40;
+
+            dibujarTituloSeccion(
+                ctx,
+                "FINAL",
+                ancho / 2,
+                y
+            );
+
+            y += 50;
+
+            const final = [
+                {
+                    local:
+                        ganador1,
+                    visitante:
+                        ganador2
+                }
+            ];
+
+            y =
+                dibujarPartidosEliminatoriaCanvas(
+                    ctx,
+                    final,
+                    ["F-0"],
+                    margen,
+                    y,
+                    ancho -
+                        margen * 2
+                );
+        }
     }
 
-    localStorage.removeItem("equiposLiga");
-    localStorage.removeItem("resultadosLiga");
-    localStorage.removeItem("torneoGenerado");
-    localStorage.removeItem("fechaActualLiga");
-    localStorage.removeItem("modalidadLiga");
+    descargarCanvas(
+        canvas
+    );
+}
 
-    equipos = [];
-    resultados = {};
-    torneoGenerado = false;
-    modalidad = "liga";
-    fechaActual = 0;
-    fixture = [];
-    grupoA = [];
-    grupoB = [];
-    fixtureA = [];
-    fixtureB = [];
+function dibujarTituloSeccion(
+    ctx,
+    texto,
+    x,
+    y
+) {
+    ctx.fillStyle =
+        "#198754";
 
-    seccionTorneo.classList.add("d-none");
-    seccionConfiguracion.classList.remove("d-none");
-    btnReset.classList.add("d-none");
+    ctx.font =
+        "bold 28px Arial";
 
-    modalidadTorneo.value = "liga";
+    ctx.textAlign =
+        "center";
 
-    mostrarEquiposConfiguracion();
-    actualizarAyudaModalidad();
-});
+    ctx.fillText(
+        texto,
+        x,
+        y
+    );
+}
+
+function dibujarTablaCanvas(
+    ctx,
+    tabla,
+    x,
+    y,
+    ancho,
+    titulo
+) {
+    const altoFila = 48;
+
+    if (titulo) {
+        ctx.fillStyle =
+            "#111827";
+
+        ctx.font =
+            "bold 24px Arial";
+
+        ctx.textAlign =
+            "center";
+
+        ctx.fillText(
+            titulo,
+            x +
+                ancho / 2,
+            y
+        );
+
+        y += 25;
+    }
+
+    ctx.fillStyle =
+        "#198754";
+
+    ctx.fillRect(
+        x,
+        y,
+        ancho,
+        altoFila
+    );
+
+    ctx.fillStyle =
+        "#ffffff";
+
+    ctx.font =
+        "bold 17px Arial";
+
+    ctx.textAlign =
+        "left";
+
+    ctx.fillText(
+        "POS",
+        x + 20,
+        y + 31
+    );
+
+    ctx.fillText(
+        "EQUIPO",
+        x + 90,
+        y + 31
+    );
+
+    ctx.fillText(
+        "PTS",
+        x +
+            ancho -
+            150,
+        y + 31
+    );
+
+    ctx.fillText(
+        "GOLES",
+        x +
+            ancho -
+            80,
+        y + 31
+    );
+
+    tabla.forEach(
+        (equipo, indice) => {
+            const filaY =
+                y +
+                altoFila +
+                indice *
+                    altoFila;
+
+            ctx.fillStyle =
+                indice % 2 === 0
+                    ? "#f3f4f6"
+                    : "#ffffff";
+
+            ctx.fillRect(
+                x,
+                filaY,
+                ancho,
+                altoFila
+            );
+
+            ctx.strokeStyle =
+                "#e5e7eb";
+
+            ctx.strokeRect(
+                x,
+                filaY,
+                ancho,
+                altoFila
+            );
+
+            ctx.fillStyle =
+                "#111827";
+
+            ctx.font =
+                "17px Arial";
+
+            ctx.textAlign =
+                "left";
+
+            ctx.fillText(
+                indice + 1,
+                x + 25,
+                filaY + 31
+            );
+
+            ctx.font =
+                "bold 17px Arial";
+
+            ctx.fillText(
+                equipo.equipo,
+                x + 90,
+                filaY + 31
+            );
+
+            ctx.font =
+                "17px Arial";
+
+            ctx.fillText(
+                equipo.puntos,
+                x +
+                    ancho -
+                    140,
+                filaY + 31
+            );
+
+            ctx.fillText(
+                equipo.goles,
+                x +
+                    ancho -
+                    65,
+                filaY + 31
+            );
+        }
+    );
+}
+
+function dibujarPartidosCanvas(
+    ctx,
+    partidos,
+    prefijo,
+    x,
+    y,
+    ancho
+) {
+    partidos.forEach(
+        (partido, indice) => {
+            const id =
+                `${prefijo}-${indice}`;
+
+            y =
+                dibujarUnPartidoCanvas(
+                    ctx,
+                    partido,
+                    resultados[id],
+                    x,
+                    y,
+                    ancho
+                );
+
+            y += 18;
+        }
+    );
+
+    return y;
+}
+
+function dibujarPartidosEliminatoriaCanvas(
+    ctx,
+    partidos,
+    ids,
+    x,
+    y,
+    ancho
+) {
+    partidos.forEach(
+        (partido, indice) => {
+            y =
+                dibujarUnPartidoCanvas(
+                    ctx,
+                    partido,
+                    resultados[
+                        ids[indice]
+                    ],
+                    x,
+                    y,
+                    ancho
+                );
+
+            y += 18;
+        }
+    );
+
+    return y;
+}
+
+function dibujarUnPartidoCanvas(
+    ctx,
+    partido,
+    resultado,
+    x,
+    y,
+    ancho
+) {
+    const alto = 110;
+
+    ctx.fillStyle =
+        "#f8f9fa";
+
+    ctx.fillRect(
+        x,
+        y,
+        ancho,
+        alto
+    );
+
+    ctx.strokeStyle =
+        "#d1d5db";
+
+    ctx.strokeRect(
+        x,
+        y,
+        ancho,
+        alto
+    );
+
+    ctx.fillStyle =
+        "#111827";
+
+    ctx.font =
+        "bold 20px Arial";
+
+    ctx.textAlign =
+        "center";
+
+    ctx.fillText(
+        `${partido.local}  vs  ${partido.visitante}`,
+        x +
+            ancho / 2,
+        y + 28
+    );
+
+    if (!resultado) {
+        ctx.fillStyle =
+            "#6b7280";
+
+        ctx.font =
+            "16px Arial";
+
+        ctx.fillText(
+            "Pendiente",
+            x +
+                ancho / 2,
+            y + 65
+        );
+
+        return y + alto;
+    }
+
+    const datos =
+        normalizarResultado(
+            resultado
+        );
+
+    const resumen =
+        calcularResultadoPartido(
+            resultado
+        );
+
+    let textoSets = "";
+
+    datos.sets.forEach(
+        (set, indiceSet) => {
+            if (
+                set.local !== "" &&
+                set.visitante !== ""
+            ) {
+                if (
+                    textoSets !== ""
+                ) {
+                    textoSets +=
+                        "   |   ";
+                }
+
+                textoSets +=
+                    `Set ${indiceSet + 1}: ${set.local}-${set.visitante}`;
+            }
+        }
+    );
+
+    ctx.fillStyle =
+        "#374151";
+
+    ctx.font =
+        "16px Arial";
+
+    ctx.fillText(
+        textoSets || "Pendiente",
+        x +
+            ancho / 2,
+        y + 58
+    );
+
+    ctx.fillStyle =
+        "#111827";
+
+    ctx.font =
+        "bold 16px Arial";
+
+    ctx.fillText(
+        `Sets: ${resumen.setsLocal}-${resumen.setsVisitante}   |   Goles: ${resumen.golesLocal}-${resumen.golesVisitante}`,
+        x +
+            ancho / 2,
+        y + 86
+    );
+
+    return y + alto;
+}
+
+function descargarCanvas(canvas) {
+    const enlace =
+        document.createElement(
+            "a"
+        );
+
+    const fecha =
+        new Date()
+            .toLocaleDateString(
+                "es-UY"
+            )
+            .replaceAll(
+                "/",
+                "-"
+            );
+
+    enlace.download =
+        `tablilla-newcom-${fecha}.png`;
+
+    enlace.href =
+        canvas.toDataURL(
+            "image/png"
+        );
+
+    enlace.click();
+}
+
+if (btnDescargarImagen) {
+    btnDescargarImagen.addEventListener(
+        "click",
+        descargarImagenTorneo
+    );
+}
+
+btnReset.addEventListener(
+    "click",
+    function () {
+        const confirmar =
+            confirm(
+                "¿Seguro que querés reiniciar el torneo? Se borrarán equipos y resultados."
+            );
+
+        if (!confirmar) {
+            return;
+        }
+
+        localStorage.removeItem(
+            "equiposLiga"
+        );
+
+        localStorage.removeItem(
+            "resultadosLiga"
+        );
+
+        localStorage.removeItem(
+            "torneoGenerado"
+        );
+
+        localStorage.removeItem(
+            "fechaActualLiga"
+        );
+
+        localStorage.removeItem(
+            "modalidadLiga"
+        );
+
+        equipos = [];
+        resultados = {};
+        torneoGenerado = false;
+        modalidad = "liga";
+        fechaActual = 0;
+
+        fixture = [];
+
+        grupoA = [];
+        grupoB = [];
+
+        fixtureA = [];
+        fixtureB = [];
+
+        tablaActualA = [];
+        tablaActualB = [];
+        tablaActualLiga = [];
+
+        seccionTorneo.classList.add(
+            "d-none"
+        );
+
+        seccionConfiguracion.classList.remove(
+            "d-none"
+        );
+
+        btnReset.classList.add(
+            "d-none"
+        );
+
+        if (btnDescargarImagen) {
+            btnDescargarImagen.classList.add(
+                "d-none"
+            );
+        }
+
+        modalidadTorneo.value =
+            "liga";
+
+        mostrarEquiposConfiguracion();
+
+        actualizarAyudaModalidad();
+    }
+);
 
 function iniciarPagina() {
     modalidadTorneo.value =
@@ -1451,6 +2748,7 @@ function iniciarPagina() {
             );
 
             mostrarEquiposConfiguracion();
+
             return;
         }
 
@@ -1469,6 +2767,12 @@ function iniciarPagina() {
         btnReset.classList.add(
             "d-none"
         );
+
+        if (btnDescargarImagen) {
+            btnDescargarImagen.classList.add(
+                "d-none"
+            );
+        }
     }
 }
 
