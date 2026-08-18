@@ -1,0 +1,11 @@
+node_modules/
+
+# Android / Capacitor generados
+android/.gradle/
+android/.idea/
+android/build/
+android/app/build/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db

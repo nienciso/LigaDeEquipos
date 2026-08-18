@@ -1,0 +1,27 @@
+{
+  "name": "ligadeequipos",
+  "version": "1.0.0",
+  "description": "Sistema web de gestión de torneos.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nienciso/LigaDeEquipos.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/nienciso/LigaDeEquipos/issues"
+  },
+  "homepage": "https://github.com/nienciso/LigaDeEquipos#readme",
+  "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/filesystem": "^8.1.2"
+  }
+}

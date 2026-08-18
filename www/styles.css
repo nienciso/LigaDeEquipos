@@ -1,0 +1,230 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: #f4f6f8;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #212529;
+}
+
+.hero {
+    background: linear-gradient(
+        135deg,
+        #111827,
+        #1f2937
+    );
+
+    color: white;
+    padding: 60px 20px;
+}
+
+.hero h1 {
+    font-weight: 800;
+    font-size: 2.5rem;
+}
+
+.hero p {
+    margin-top: 10px;
+    color: #d1d5db;
+    font-size: 1.1rem;
+}
+
+.estadistica {
+    background: white;
+    padding: 25px;
+    text-align: center;
+    border-radius: 14px;
+
+    box-shadow:
+        0 5px 20px rgba(0, 0, 0, 0.06);
+}
+
+.estadistica span {
+    display: block;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #198754;
+}
+
+.estadistica p {
+    margin: 5px 0 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.titulo-seccion {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 20px;
+}
+
+.titulo-seccion h2 {
+    font-weight: 800;
+    margin: 0;
+}
+
+.subtitulo {
+    color: #198754;
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.selector-fecha {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: white;
+    border-radius: 10px;
+    padding: 6px;
+}
+
+#numeroFecha {
+    font-weight: bold;
+    min-width: 70px;
+    text-align: center;
+}
+
+.partido {
+    background: white;
+    border-radius: 14px;
+    padding: 22px;
+
+    box-shadow:
+        0 5px 20px rgba(0, 0, 0, 0.06);
+
+    height: 100%;
+}
+
+.estado-partido {
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    font-weight: bold;
+    color: #6c757d;
+    margin-bottom: 18px;
+}
+
+.equipo-partido {
+    display: grid;
+    grid-template-columns: 1fr 60px;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.equipo-partido:last-child {
+    margin-bottom: 0;
+}
+
+.nombre-equipo {
+    font-weight: 700;
+}
+
+.input-gol {
+    width: 60px;
+    height: 45px;
+    text-align: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+
+.input-gol:focus {
+    outline: none;
+    border-color: #198754;
+
+    box-shadow:
+        0 0 0 3px rgba(25, 135, 84, 0.15);
+}
+
+.input-gol::-webkit-inner-spin-button,
+.input-gol::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.tabla-contenedor {
+    background: white;
+    border-radius: 14px;
+    overflow: hidden;
+
+    box-shadow:
+        0 5px 20px rgba(0, 0, 0, 0.06);
+}
+
+.tabla-posiciones {
+    margin: 0;
+}
+
+.tabla-posiciones thead {
+    background: #111827;
+    color: white;
+}
+
+.tabla-posiciones thead th {
+    padding: 16px;
+    font-size: 0.8rem;
+    border: none;
+}
+
+.tabla-posiciones tbody td {
+    padding: 15px;
+    border-color: #f1f1f1;
+}
+
+.posicion {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    background: #f1f3f5;
+    font-weight: bold;
+}
+
+.primero .posicion {
+    background: #198754;
+    color: white;
+}
+
+.nombre-tabla {
+    font-weight: 700;
+}
+
+.puntos {
+    font-weight: 800;
+    color: #198754;
+}
+
+footer {
+    margin-top: 70px;
+    background: #111827;
+    color: #9ca3af;
+    padding: 30px 15px;
+}
+
+@media (max-width: 768px) {
+
+    .hero {
+        padding: 40px 15px;
+    }
+
+    .hero h1 {
+        font-size: 1.8rem;
+    }
+
+    .titulo-seccion {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .selector-fecha {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
